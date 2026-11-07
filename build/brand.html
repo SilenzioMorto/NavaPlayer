@@ -1,0 +1,31 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../renderer/fonts/fonts.css">
+<style>
+html,body{margin:0;background:transparent;overflow:hidden}
+.logo{width:1024px;height:1024px;background:url(logo.svg) center/contain no-repeat}
+.side{width:164px;height:314px;position:relative;overflow:hidden;font-family:Unbounded,Vazirmatn,sans-serif;color:#E9F6E8;
+ background:radial-gradient(120% 70% at 50% 28%,#1c3d24 0%,#08120b 55%,#030705 100%)}
+.side .lg{position:absolute;left:32px;top:30px;width:100px;height:100px;background:url(logo.svg) center/contain no-repeat;filter:drop-shadow(0 8px 18px rgba(134,239,108,.35))}
+.side h1{position:absolute;top:140px;left:0;right:0;text-align:center;margin:0;font-size:19px;font-weight:800;letter-spacing:.08em}
+.side .b{position:absolute;top:168px;left:50%;transform:translateX(-50%);font:700 9px 'JetBrains Mono',monospace;color:#07210B;background:#86EF6C;border-radius:5px;padding:2px 6px;letter-spacing:.12em}
+.side .wave{position:absolute;left:0;right:0;top:192px;height:46px;display:flex;align-items:flex-end;justify-content:center;gap:3px}
+.side .wave i{width:4px;border-radius:2px;background:linear-gradient(#EAFF84,#2FD8C8);opacity:.85}
+.side .by{position:absolute;bottom:34px;left:0;right:0;text-align:center;font:400 9px Vazirmatn,sans-serif;color:#8CA290}
+.side .by b{display:block;color:#E9F6E8;font:700 11px Unbounded,sans-serif;margin-top:3px}
+.side .gh{position:absolute;bottom:13px;left:0;right:0;text-align:center;font:500 8.5px 'JetBrains Mono',monospace;color:#86EF6C}
+.side.un{background:radial-gradient(120% 70% at 50% 28%,#3a1d33 0%,#140a12 55%,#050304 100%)}
+.side.un .b{background:#FF7EB8}
+.side.un .wave i{background:linear-gradient(#FF7EB8,#A592FF)}
+.side.un .lg{filter:grayscale(.6) drop-shadow(0 8px 18px rgba(255,126,184,.3))}
+.head{width:150px;height:57px;background:linear-gradient(90deg,#0A120C,#13281A);position:relative;overflow:hidden}
+.head .lg{position:absolute;right:8px;top:6px;width:45px;height:45px;background:url(logo.svg) center/contain no-repeat}
+.head span{position:absolute;right:58px;top:20px;font:800 13px Unbounded,sans-serif;color:#E9F6E8;letter-spacing:.06em}
+</style></head><body><div id="root"></div>
+<script>
+const k=location.hash.slice(1)||'logo', r=document.getElementById('root');
+const wave=n=>Array.from({length:n},(_,i)=>`<i style="height:${8+Math.abs(Math.sin(i*1.31+.4))*34}px"></i>`).join('');
+if(k==='logo') r.innerHTML='<div class="logo"></div>';
+if(k==='sidebar') r.innerHTML=`<div class="side"><div class="lg"></div><h1>NAVA</h1><span class="b">BETA</span><div class="wave">${wave(18)}</div><div class="by">Made with ♥ by<b>Silenzio Morto</b></div><div class="gh">github.com/SilenzioMorto</div></div>`;
+if(k==='unsidebar') r.innerHTML=`<div class="side un"><div class="lg"></div><h1>NAVA</h1><span class="b">GOODBYE?</span><div class="wave">${wave(18)}</div><div class="by">Made with ♥ by<b>Silenzio Morto</b></div><div class="gh">github.com/SilenzioMorto</div></div>`;
+if(k==='header') r.innerHTML='<div class="head"><div class="lg"></div><span>NAVA</span></div>';
+</script></body></html>

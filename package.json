@@ -1,0 +1,104 @@
+{
+  "name": "nava-player",
+  "productName": "Nava Player",
+  "version": "2.0.0-beta.1",
+  "description": "Nava Player — visual music player with GPU effects and on-device AI lyrics",
+  "main": "main.js",
+  "author": {
+    "name": "Silenzio Morto",
+    "url": "https://github.com/SilenzioMorto"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "scripts": {
+    "start": "electron .",
+    "dist": "node scripts/version.js && electron-builder --win nsis",
+    "pack": "node scripts/version.js && electron-builder --win dir"
+  },
+  "dependencies": {
+    "music-metadata": "12.2.1"
+  },
+  "devDependencies": {
+    "@fontsource/jetbrains-mono": "^5.2.5",
+    "@fontsource/unbounded": "^5.2.5",
+    "@fontsource/vazirmatn": "^5.2.5",
+    "electron": "44.9.0",
+    "electron-builder": "26.17.0"
+  },
+  "build": {
+    "appId": "app.nava.player",
+    "productName": "Nava Player",
+    "copyright": "Copyright © 2026 Silenzio Morto",
+    "electronDist": "node_modules/electron/dist",
+    "electronVersion": "44.9.0",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "splash-preload.js",
+      "renderer/**/*",
+      "package.json",
+      "!renderer/**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "build/EULA.txt",
+        "to": "EULA.txt"
+      },
+      {
+        "from": "THIRD_PARTY_NOTICES.md",
+        "to": "THIRD_PARTY_NOTICES.md"
+      },
+      {
+        "from": "LICENSE",
+        "to": "LICENSE.txt"
+      }
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "legalTrademarks": "Nava Player",
+      "signAndEditExecutable": true
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": false,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Nava Player",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "installerSidebar": "build/sidebar.bmp",
+      "uninstallerSidebar": "build/unsidebar.bmp",
+      "installerHeader": "build/header.bmp",
+      "license": "build/EULA.txt",
+      "include": "build/installer.nsh",
+      "artifactName": "NavaPlayer-Setup-${version}.${ext}",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "multiLanguageInstaller": true,
+      "installerLanguages": [
+        "en_US"
+      ],
+      "displayLanguageSelector": true,
+      "menuCategory": false,
+      "uninstallDisplayName": "Nava Player ${version}",
+      "warningsAsErrors": false
+    }
+  },
+  "homepage": "https://github.com/SilenzioMorto",
+  "private": true
+}

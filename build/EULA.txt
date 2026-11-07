@@ -1,0 +1,22 @@
+﻿NAVA PLAYER — END USER LICENSE AGREEMENT (BETA)
+Copyright (c) 2026 Silenzio Morto. All rights reserved.
+https://github.com/SilenzioMorto
+
+1. Nava Player ("the Software") is proprietary and is NOT open source. You may install and use it free of charge on your own devices.
+2. You may not sell, rent, redistribute, decompile, modify or publish modified copies of the Software or its assets (including the name, logo and artwork) without written permission from Silenzio Morto.
+3. This is a BETA release provided "as is", without warranty of any kind. Use it at your own risk.
+4. The AI lyrics feature runs entirely on your computer. Audio is never uploaded. Generated text is a machine transcription of your own files and may contain mistakes.
+5. Streaming services (Spotify, SoundCloud, YouTube) are played through their official embedded players and remain subject to their own terms.
+6. Third-party components (Electron, music-metadata, whisper.cpp, the OpenAI Whisper model, Silero VAD, and the Vazirmatn, Unbounded and JetBrains Mono fonts) are used under their own open-source licenses, listed in THIRD_PARTY_NOTICES.
+
+————————————————————————————
+
+نوا پلیر — توافق‌نامه‌ی مجوز کاربر نهایی (نسخه‌ی بتا)
+همه‌ی حقوق برای Silenzio Morto محفوظ است. (۲۰۲۶)
+
+۱. نوا پلیر («نرم‌افزار») اختصاصی است و متن‌باز نیست. می‌توانید آن را رایگان روی دستگاه‌های خودتان نصب و استفاده کنید.
+۲. فروش، اجاره، بازنشر، دی‌کامپایل، تغییر یا انتشار نسخه‌ی تغییریافته‌ی نرم‌افزار و دارایی‌های آن (از جمله نام، لوگو و طرح‌ها) بدون اجازه‌ی کتبی Silenzio Morto مجاز نیست.
+۳. این نسخه‌ی بتا «همان‌طور که هست» و بدون هیچ ضمانتی ارائه می‌شود.
+۴. ساخت متن آهنگ با هوش مصنوعی کاملاً روی کامپیوتر شما انجام می‌شود و هیچ صدایی آپلود نمی‌شود. متن ساخته‌شده رونویسی ماشینی فایل‌های خودتان است و ممکن است خطا داشته باشد.
+۵. سرویس‌های استریم (اسپاتیفای، ساندکلاد، یوتیوب) از طریق پلیر رسمی خودشان پخش می‌شوند و تابع قوانین خودشان هستند.
+۶. اجزای جانبی تحت مجوزهای متن‌باز خودشان استفاده شده‌اند که در فایل THIRD_PARTY_NOTICES آمده‌اند.

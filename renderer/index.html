@@ -1,0 +1,155 @@
+<!doctype html>
+<!-- Nava Player — Copyright (c) 2026 Silenzio Morto. All rights reserved. https://github.com/SilenzioMorto -->
+<html lang="fa" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' nava:; img-src 'self' nava: data: blob: https:; media-src nava: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self' nava:; frame-src https://open.spotify.com https://w.soundcloud.com https://www.youtube-nocookie.com https://www.youtube.com">
+<title>Nava Player</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="booting">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-play" viewBox="0 0 24 24"><path class="f" d="M8 5.6v12.8a1.1 1.1 0 0 0 1.7.95l10-6.4a1.1 1.1 0 0 0 0-1.9l-10-6.4A1.1 1.1 0 0 0 8 5.6z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect class="f" x="6" y="5" width="4.2" height="14" rx="1.4"/><rect class="f" x="13.8" y="5" width="4.2" height="14" rx="1.4"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><path class="f" d="M5.5 6.4v11.2a1 1 0 0 0 1.55.83l8.2-5.6a1 1 0 0 0 0-1.66l-8.2-5.6A1 1 0 0 0 5.5 6.4z"/><rect class="f" x="16.6" y="5.5" width="2.6" height="13" rx="1.2"/></symbol>
+  <symbol id="i-prev" viewBox="0 0 24 24"><path class="f" d="M18.5 6.4v11.2a1 1 0 0 1-1.55.83l-8.2-5.6a1 1 0 0 1 0-1.66l8.2-5.6a1 1 0 0 1 1.55.83z"/><rect class="f" x="4.8" y="5.5" width="2.6" height="13" rx="1.2"/></symbol>
+  <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M3 7h3c2 0 3.2 1 4.3 2.6l2.4 3.8C13.8 15 15 16 17 16h4M3 17h3c1.4 0 2.4-.5 3.2-1.3M14.3 8.3C15.1 7.5 16 7 17.5 7H21M18 4l3 3-3 3M18 13l3 3-3 3"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M4 11V9.5A3.5 3.5 0 0 1 7.5 6H20M17 3l3 3-3 3M20 13v1.5a3.5 3.5 0 0 1-3.5 3.5H4M7 21l-3-3 3-3"/></symbol>
+  <symbol id="i-vol" viewBox="0 0 24 24"><path class="f" d="M3.5 9.3h3.4l4.6-4v13.4l-4.6-4H3.5z"/><path d="M15 9a4.2 4.2 0 0 1 0 6M17.8 6.3a8 8 0 0 1 0 11.4"/></symbol>
+  <symbol id="i-mute" viewBox="0 0 24 24"><path class="f" d="M3.5 9.3h3.4l4.6-4v13.4l-4.6-4H3.5z"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M18 7h2M4 17h3M12 17h8"/><circle cx="15.5" cy="7" r="2.3"/><circle cx="9.5" cy="17" r="2.3"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.6-2-3.4-2.4.9a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.4A7.6 7.6 0 0 0 7 6.4l-2.4-.9-2 3.4 2 1.6a7.6 7.6 0 0 0 0 3l-2 1.6 2 3.4 2.4-.9a7.6 7.6 0 0 0 2.6 1.5l.4 2.4h4l.4-2.4a7.6 7.6 0 0 0 2.6-1.5l2.4.9 2-3.4z"/></symbol>
+  <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.2 0 1.8-.8 1.8-1.7 0-1.3-1.1-1.6-1.1-2.7 0-1 .8-1.6 1.9-1.6h2.1a3.8 3.8 0 0 0 3.8-3.8C20.5 6.6 16.7 3.5 12 3.5z"/><circle class="f" cx="7.6" cy="11" r="1.3"/><circle class="f" cx="10.2" cy="7.4" r="1.3"/><circle class="f" cx="14.6" cy="7.6" r="1.3"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></symbol>
+  <symbol id="i-stage" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2.5"/><path d="M8.5 20h7M12 16.5V20M9 10.5c1-2 2-2 3 0s2 2 3 0"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 7.5A2 2 0 0 1 5.5 5.5h3.6l2 2.2h7.4a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5.5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9z"/><path d="M18.5 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></symbol>
+  <symbol id="i-lyr" viewBox="0 0 24 24"><path d="M4 6h10M4 10.5h13M4 15h7"/><path d="M18 13v6.5"/><circle cx="16" cy="19.5" r="2"/><path d="M18 13l3 1"/></symbol>
+  <symbol id="i-side" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M14.5 4.5v15"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3.5H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5z"/><path d="M14 3.5v5h5"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-4.6L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.6L20 16M20 20v-4h-4"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></symbol>
+  <symbol id="i-eq" viewBox="0 0 24 24"><path d="M6 20v-6M6 10V4M12 20v-9M12 7V4M18 20v-4M18 12V4"/><path d="M4 14h4M10 7h4M16 16h4"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 7.5 2.8C19.5 15.4 12 20 12 20z"/></symbol>
+  <symbol id="i-boost" viewBox="0 0 24 24"><path d="M13 3 5 13.5h6L10 21l8-10.5h-6z"/></symbol>
+  <symbol id="i-gh" viewBox="0 0 24 24"><path class="f" d="M12 2.5a9.5 9.5 0 0 0-3 18.5c.5.1.6-.2.6-.5v-1.7c-2.6.6-3.2-1.2-3.2-1.2-.4-1.1-1-1.4-1-1.4-.9-.6 0-.6 0-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1 2.8.8.1-.6.4-1 .6-1.3-2.1-.2-4.3-1-4.3-4.6 0-1 .4-1.9 1-2.5-.1-.3-.4-1.2.1-2.6 0 0 .8-.3 2.6 1a9 9 0 0 1 4.8 0c1.8-1.3 2.6-1 2.6-1 .5 1.4.2 2.3.1 2.6.6.7 1 1.5 1 2.5 0 3.6-2.2 4.4-4.3 4.6.4.3.7.9.7 1.8v2.7c0 .3.2.6.7.5A9.5 9.5 0 0 0 12 2.5z"/></symbol>
+</svg>
+
+<header class="titlebar">
+  <div class="brand" data-gh-link><img src="logo.svg" alt="" class="logo-sm" id="mark"><b>NAVA</b><span class="beta" data-i18n="beta">Beta</span></div>
+  <div class="search" id="searchBox"><svg><use href="#i-search"/></svg><input id="q" type="search" data-i18n-ph="search"></div>
+  <div class="tb-actions">
+    <button class="ib" id="btnLink" data-i18n-title="tLink"><svg><use href="#i-link"/></svg></button>
+    <button class="ib" id="btnSide" data-i18n-title="tLibrary"><svg><use href="#i-side"/></svg></button>
+    <button class="ib" id="btnTheme" data-i18n-title="tTheme"><svg><use href="#i-palette"/></svg></button>
+    <button class="ib" id="btnStage" data-i18n-title="tStage"><svg><use href="#i-stage"/></svg></button>
+    <button class="ib" id="btnFull" data-i18n-title="tFull"><svg><use href="#i-expand"/></svg></button>
+    <button class="ib" id="btnAppSet" data-i18n-title="tAppSettings"><svg><use href="#i-gear"/></svg></button>
+  </div>
+</header>
+
+<aside class="side" id="side">
+  <nav class="libtabs" id="libTabs">
+    <button data-view="songs" data-i18n="vSongs"></button><button data-view="albums" data-i18n="vAlbums"></button><button data-view="artists" data-i18n="vArtists"></button>
+    <button data-view="folders" data-i18n="vFolders"></button><button data-view="favs" data-i18n="vFavs"></button><button data-view="queue" data-i18n="vQueue"></button>
+  </nav>
+  <div class="libbar">
+    <span id="libCount" class="muted"></span>
+    <div class="chipf" id="filterChip" hidden><span></span><button aria-label="x"><svg><use href="#i-x"/></svg></button></div>
+    <select id="sortSel"><option value="title" data-i18n="sortTitle"></option><option value="artist" data-i18n="sortArtist"></option><option value="added" data-i18n="sortAdded"></option><option value="duration" data-i18n="sortDuration"></option><option value="plays" data-i18n="sortPlays"></option></select>
+  </div>
+  <div class="vlist" id="vlist"><div class="vspace" id="vspace"></div></div>
+  <div class="grid" id="grid" hidden></div>
+  <footer class="sidefoot">
+    <span id="scanInfo" class="muted"></span>
+    <div>
+      <button class="ib sm" id="btnOpenFiles" data-i18n-title="tOpenFile"><svg><use href="#i-file"/></svg></button>
+      <button class="ib sm" id="btnAddFolder" data-i18n-title="tAddFolder"><svg><use href="#i-folder"/></svg></button>
+      <button class="ib sm" id="btnRescan" data-i18n-title="tRescan"><svg><use href="#i-refresh"/></svg></button>
+    </div>
+  </footer>
+</aside>
+
+<main class="stage" id="stage">
+  <canvas id="gl"></canvas>
+  <nav class="modes" id="modes"></nav>
+  <button class="ai-pill" id="aiPill" hidden></button>
+  <div class="lyr-menu" id="lyrMenu" hidden>
+    <b data-i18n="relang"></b>
+    <button data-relang="auto" data-i18n="langAuto"></button><button data-relang="fa" data-i18n="langFa"></button><button data-relang="en" data-i18n="langEn"></button><button data-relang="ru" data-i18n="langRu"></button>
+  </div>
+  <div class="lyrics" id="lyrics" data-pos="bottom"></div>
+  <div class="cover-card" id="coverCard" data-pos="left">
+    <div class="cc-art"><img id="ccImg" alt=""><i class="cc-shine"></i></div>
+    <div class="cc-meta"><b id="ccTitle" dir="auto"></b><span id="ccArtist" dir="auto"></span><small id="ccAlbum" dir="auto"></small></div>
+  </div>
+  <div class="embed" id="embed" hidden><div class="embed-top"><span id="embedLabel"></span><button class="ib sm" id="embedClose" data-i18n-title="embedClose"><svg><use href="#i-x"/></svg></button></div><div id="embedBox"></div><p class="embed-note" id="embedNote"></p></div>
+  <div class="splash-mode" id="splash"></div>
+  <div class="empty" id="empty" hidden>
+    <div class="card">
+      <h2 data-i18n-html="emptyTitle"></h2>
+      <p id="emptyMsg"></p>
+      <div class="btnrow"><button class="btn pri" id="emptyAdd"><svg><use href="#i-folder"/></svg><span data-i18n="tAddFolder"></span></button><button class="btn" id="emptyOpen"><svg><use href="#i-file"/></svg><span data-i18n="tOpenFile"></span></button></div>
+    </div>
+  </div>
+  <div class="hello" id="stageHello" hidden>
+    <h2 data-i18n="helloTitle"></h2>
+    <div class="btnrow"><button class="btn pri" id="helloPlay"><svg><use href="#i-play"/></svg><span data-i18n="helloPlay"></span></button><button class="btn" id="helloShuffle"><svg><use href="#i-shuffle"/></svg><span data-i18n="helloShuffle"></span></button></div>
+  </div>
+  <div class="stagehint"><span><span data-i18n="stageHint"></span> <kbd>H</kbd> / <kbd>Esc</kbd></span><button class="btn sm" id="btnExitStage" data-i18n="exit"></button></div>
+</main>
+
+<footer class="dock">
+  <div class="track">
+    <div class="thumb" id="thumb"></div>
+    <div class="meta"><b id="mTitle" dir="auto"></b><span id="mArtist" dir="auto"></span></div>
+    <button class="ib sm fav" id="btnFav" data-i18n-title="tFav"><svg><use href="#i-heart"/></svg></button>
+  </div>
+  <div class="center">
+    <div class="transport" dir="ltr">
+      <button class="ib bare" id="btnShuffle" data-i18n-title="tShuffle"><svg><use href="#i-shuffle"/></svg></button>
+      <button class="ib bare" id="btnPrev" data-i18n-title="tPrev"><svg><use href="#i-prev"/></svg></button>
+      <button class="play" id="btnPlay" data-i18n-title="tPlay"><span class="pulse" id="playPulse"></span><svg class="i-play"><use href="#i-play"/></svg><svg class="i-pause"><use href="#i-pause"/></svg></button>
+      <button class="ib bare" id="btnNext" data-i18n-title="tNext"><svg><use href="#i-next"/></svg></button>
+      <button class="ib bare" id="btnRepeat" data-i18n-title="tRepeat"><svg><use href="#i-repeat"/></svg><span class="badge" id="repBadge" hidden>1</span></button>
+    </div>
+    <div class="progress" dir="ltr">
+      <span class="time" id="tCur">0:00</span>
+      <div class="bar" id="bar" role="slider" tabindex="0"><div class="rail"><div class="fill" id="fill"></div></div><div class="knob" id="knob"><i></i></div><div class="tip" id="tip">0:00</div></div>
+      <span class="time" id="tDur">0:00</span>
+    </div>
+  </div>
+  <div class="tools">
+    <span class="boost-badge" id="boostBadge" hidden data-i18n-title="tBooster"><svg><use href="#i-boost"/></svg></span>
+    <button class="ib bare" id="btnLyr" data-i18n-title="tLyrics"><svg><use href="#i-lyr"/></svg></button>
+    <button class="ib bare" id="btnEq" data-i18n-title="tEq"><svg><use href="#i-eq"/></svg></button>
+    <button class="ib bare" id="btnPlaySet" data-i18n-title="tPlaySettings"><svg><use href="#i-sliders"/></svg></button>
+    <div class="vol" dir="ltr"><button class="ib bare" id="btnMute" data-i18n-title="tMute"><svg><use id="volUse" href="#i-vol"/></svg></button><input type="range" id="vol" min="0" max="1" step="0.01"><span class="volpct" id="volPct">85%</span></div>
+  </div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="appSet"><div class="dh"><h2 data-i18n="appSettings"></h2><button class="ib bare" data-close><svg><use href="#i-x"/></svg></button></div><div class="tabs" id="appTabs"></div><div class="dbody" id="appPanes"></div></aside>
+<aside class="drawer" id="playSet"><div class="dh"><h2 data-i18n="playSettings"></h2><button class="ib bare" data-close><svg><use href="#i-x"/></svg></button></div><div class="tabs" id="playTabs"></div><div class="dbody" id="playPanes"></div></aside>
+
+<div class="modal" id="modal" hidden><div class="mbox" id="mbox"></div></div>
+<div class="welcome" id="welcome" hidden><div class="wl-inner"><img src="logo.svg" alt=""><h1 id="wlText"></h1><p><span data-i18n="madeBy"></span> <b>Silenzio Morto</b></p><small data-i18n="tapToSkip"></small></div></div>
+<div class="outro" id="outro" hidden><div class="ou-inner"><img src="logo.svg" alt=""><h1 id="ouText"></h1><p>github.com/SilenzioMorto</p></div></div>
+<div class="toast" id="toast" role="status"></div>
+<div class="drop" id="drop"><div><svg><use href="#i-music"/></svg><span data-i18n="dropHere"></span></div></div>
+
+<script src="i18n.js"></script>
+<script src="themes.js"></script>
+<script src="presets.js"></script>
+<script src="engine.js"></script>
+<script src="audiofx.js"></script>
+<script src="lyrics.js"></script>
+<script src="tour.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
