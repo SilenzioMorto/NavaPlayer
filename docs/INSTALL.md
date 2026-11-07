@@ -1,7 +1,7 @@
 # Installing Nava Player
 
 ## 1. Download
-Go to the [latest release](../../../releases/latest) and download **`NavaPlayer-Setup-2.0.0-beta.1.exe`** (about 120 MB).
+Go to the [Releases page](../../../releases) and download **`NavaPlayer-Setup-2.0.0-beta.2.exe`** (about 120 MB).
 
 ## 2. Run the installer
 1. Double-click the file.

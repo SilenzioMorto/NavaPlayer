@@ -27,7 +27,7 @@ app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
 if (process.env.NAVA_USERDATA && !app.isPackaged) app.setPath('userData', process.env.NAVA_USERDATA);
 const USER = app.getPath('userData');
-const DIR = { covers: path.join(USER, 'covers'), lyricsCache: path.join(USER, 'lyrics'), ai: path.join(USER, 'ai'), tmp: path.join(os.tmpdir(), 'nava-player') };
+const DIR = { fonts: path.join(USER, 'fonts'), covers: path.join(USER, 'covers'), lyricsCache: path.join(USER, 'lyrics'), ai: path.join(USER, 'ai'), tmp: path.join(os.tmpdir(), 'nava-player') };
 for (const d of Object.values(DIR)) fs.mkdirSync(d, { recursive: true });
 const LIB_FILE = path.join(USER, 'library.json');
 const CFG_FILE = path.join(USER, 'config.json');
@@ -38,7 +38,7 @@ const MIME = {
   '.m4a': 'audio/mp4', '.mp4a': 'audio/mp4', '.aac': 'audio/aac', '.webm': 'audio/webm', '.weba': 'audio/webm',
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.bmp': 'image/bmp',
-  '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.woff': 'font/woff'
+  '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.woff': 'font/woff', '.ttf': 'font/ttf', '.otf': 'font/otf'
 };
 const SKIP_DIRS = new Set(['windows', 'program files', 'program files (x86)', 'programdata', 'appdata', '$recycle.bin', 'system volume information',
   'node_modules', '.git', 'recovery', 'perflogs', 'msocache', '$windows.~bt', '$windows.~ws', 'windowsapps', 'steamapps', 'cache', 'temp', 'tmp',
@@ -215,6 +215,7 @@ function registerProtocol() {
         return await serveFile(fp, req, MIME[path.extname(fp).toLowerCase()] || 'application/octet-stream');
       }
       if (p.startsWith('/__remote/')) return await serveRemote(Buffer.from(p.slice(10), 'base64url').toString('utf8'), req);
+      if (p.startsWith('/__font/')) { const name = path.basename(p.slice(8)); return await serveFile(path.join(DIR.fonts, name), req, MIME[path.extname(name).toLowerCase()] || 'font/ttf'); }
       if (p.startsWith('/__cover/')) { const name = path.basename(p.slice(9)); return await serveFile(path.join(DIR.covers, name), req, MIME[path.extname(name).toLowerCase()] || 'image/jpeg'); }
       const rel = path.normalize(p === '/' ? '/index.html' : p).replace(/^([\\/])+/, '');
       const fp = path.join(RENDERER, rel);
@@ -532,6 +533,36 @@ function attachTestHarness() {
   });
 }
 
+/* ---------------- user fonts (imported by the user for lyrics) ---------------- */
+const FONT_EXT = new Set(['.ttf', '.otf', '.woff', '.woff2']);
+const WEIGHTS = [['hairline', 100], ['thin', 100], ['extralight', 200], ['ultralight', 200], ['light', 300], ['regular', 400], ['normal', 400], ['book', 400], ['medium', 500], ['semibold', 600], ['demibold', 600], ['extrabold', 800], ['ultrabold', 800], ['bold', 700], ['black', 900], ['heavy', 900]];
+function fontInfo(file) {
+  const base = file.replace(/\.[^.]+$/, '');
+  const m = base.match(/^(.*?)[-_ ]?((?:extra|ultra|semi|demi)?(?:hairline|thin|light|regular|normal|book|medium|bold|black|heavy))(italic)?$/i);
+  let family = base, weight = 400;
+  if (m && m[1]) { family = m[1]; const w = m[2].toLowerCase(); for (const [k, v] of WEIGHTS) if (w === k) { weight = v; break; } }
+  return { file, family: family.replace(/[-_]+$/, '').trim() || base, weight, italic: /italic/i.test(base) };
+}
+function listFonts() {
+  let files = []; try { files = fs.readdirSync(DIR.fonts).filter(f => FONT_EXT.has(path.extname(f).toLowerCase())); } catch (e) {}
+  // prefer woff2 > woff > ttf/otf for the same face
+  const rank = f => ({ '.woff2': 0, '.woff': 1, '.ttf': 2, '.otf': 3 }[path.extname(f).toLowerCase()]);
+  const faces = new Map();
+  for (const f of files) { const fi = fontInfo(f), k = fi.family + '|' + fi.weight + '|' + fi.italic; if (!faces.has(k) || rank(f) < rank(faces.get(k).file)) faces.set(k, fi); }
+  return [...faces.values()];
+}
+async function importFonts(paths) {
+  let n = 0;
+  for (const p of paths) {
+    try {
+      const st = await fsp.stat(p);
+      const list = st.isDirectory() ? (await fsp.readdir(p)).map(f => path.join(p, f)) : [p];
+      for (const f of list) if (FONT_EXT.has(path.extname(f).toLowerCase())) { await fsp.copyFile(f, path.join(DIR.fonts, path.basename(f))); n++; }
+    } catch (e) {}
+  }
+  return { added: n, fonts: listFonts() };
+}
+
 /* ---------------- ipc ---------------- */
 function ipc() {
   ipcMain.handle('app:info', () => ({ version: app.getVersion(), name: 'Nava Player', author: 'Silenzio Morto', github: GITHUB, electron: process.versions.electron, chrome: process.versions.chrome, userData: USER }));
@@ -582,6 +613,17 @@ function ipc() {
     if (job.priority) jobs.unshift(j); else jobs.push(j);
     pump();
   }));
+  ipcMain.handle('fonts:list', () => listFonts());
+  ipcMain.handle('fonts:import', async (e, title) => {
+    const r = await dialog.showOpenDialog(win, { title, properties: ['openFile', 'multiSelections'], filters: [{ name: 'Fonts', extensions: ['ttf', 'otf', 'woff', 'woff2'] }] });
+    return r.canceled ? { added: 0, fonts: listFonts() } : importFonts(r.filePaths);
+  });
+  ipcMain.handle('fonts:importPaths', (e, paths) => importFonts(paths || []));
+  ipcMain.handle('fonts:remove', async (e, family) => {
+    for (const f of listFonts().filter(x => x.family === family)) { try { await fsp.unlink(path.join(DIR.fonts, f.file)); } catch (er) {} }
+    try { for (const f of fs.readdirSync(DIR.fonts)) if (fontInfo(f).family === family) fs.unlinkSync(path.join(DIR.fonts, f)); } catch (er) {}
+    return listFonts();
+  });
   ipcMain.handle('link:probe', async (e, url) => {
     try {
       const r = await net.fetch(url, { method: 'GET', headers: { Range: 'bytes=0-1', 'User-Agent': 'Mozilla/5.0 NavaPlayer/2.0' } });

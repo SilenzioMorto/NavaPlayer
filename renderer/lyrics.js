@@ -44,7 +44,7 @@ class LyricsView {
     if (!this.data) return;
     if (LIST_STYLES.has(this.style)) {
       const inner = document.createElement('div'); inner.className = 'lyr-list';
-      inner.innerHTML = this.data.lines.map((l, i) => `<div class="ln" data-i="${i}" dir="auto">${esc(l.text)}</div>`).join('');
+      inner.innerHTML = this.data.lines.map((l, i) => `<div class="ln${RTL.test(l.text) ? ' rtl' : ''}" data-i="${i}" dir="auto">${esc(l.text)}</div>`).join('');
       this.stage.appendChild(inner); this.list = inner; this.lines = [...inner.children];
     }
   }

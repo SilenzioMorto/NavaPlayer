@@ -118,6 +118,10 @@ const S = {
   sLyrOffset: ['تنظیم هم‌زمانی', 'Sync offset'], sLyrGlow: ['درخشش متن', 'Text glow'], sLyrColor: ['رنگ متن', 'Text color'], cAccent: ['رنگ تم', 'Theme'], cWhite: ['سفید', 'White'], cGrad: ['گرادیانت', 'Gradient'],
   sLyrFont: ['فونت متن', 'Font'], fDisplay: ['نمایشی', 'Display'], fBody: ['ساده', 'Clean'],
   secLyr3d: ['سه‌بعدی', '3D'],
+  secFonts: ['فونت متن آهنگ', 'Lyrics fonts'], sLyrFontFa: ['فونت متن‌های فارسی', 'Font for Persian lyrics'], sLyrFontEn: ['فونت متن‌های انگلیسی و روسی', 'Font for English & Russian lyrics'],
+  sLyrWeight: ['ضخامت فونت', 'Font weight'], fontPreview: ['پیش‌نمایش', 'Preview'], fontsYours: ['فونت‌های اضافه‌شده', 'Your imported fonts'],
+  fontImport: ['افزودن فایل فونت', 'Import font files'], fontImported: ['{n} فایل فونت اضافه شد', '{n} font files imported'], fontNone: ['هنوز فونتی اضافه نکردی. فایل‌های ttf، otf، woff یا woff2 رو اضافه کن یا بکششون روی برنامه.', 'No imported fonts yet. Add .ttf, .otf, .woff or .woff2 files, or drop them onto the window.'],
+  fontLicense: ['فونت‌هایی که اضافه می‌کنی فقط روی همین کامپیوتر استفاده می‌شن و جایی فرستاده نمی‌شن. مطمئن شو مجوز استفاده‌شون رو داری.', 'Imported fonts stay on this computer and are never shared. Make sure you are licensed to use them.'],
   // sound
   secPlayback: ['پخش', 'Playback'], sSpeed: ['سرعت پخش', 'Playback speed'], sPitch: ['زیر و بمی (Pitch)', 'Pitch'], semis: ['نیم‌پرده', 'semitones'], sVinyl: ['حالت گرامافون (سرعت روی Pitch هم اثر بذاره)', 'Vinyl mode (speed also changes pitch)'],
   sMinDur: ['رد شدن از آهنگ‌های کوتاه‌تر از', 'Skip tracks shorter than'], minDurOff: ['خاموش', 'Off'], sFadeIn: ['محو شدن ورودی آهنگ', 'Fade in'], sFadeOut: ['محو شدن انتهای آهنگ', 'Fade out'],
@@ -199,5 +203,6 @@ function setLang(l) {
   apply();
 }
 const pick = arr => arr[(Math.random() * arr.length) | 0];
-window.I18N = { t, setLang, apply, fmtN, get lang() { return lang; }, welcome: () => pick(WELCOME[lang]), outro: () => pick(OUTRO[lang]), has: k => !!S[k] };
+const noStop = s => s.replace(/[.\u06D4]+$/, '');
+window.I18N = { t, setLang, apply, fmtN, get lang() { return lang; }, welcome: () => noStop(pick(WELCOME[lang])), outro: () => noStop(pick(OUTRO[lang])), has: k => !!S[k] };
 })();

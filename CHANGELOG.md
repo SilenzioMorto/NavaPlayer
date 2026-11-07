@@ -2,6 +2,17 @@
 
 All notable changes to Nava Player are listed here.
 
+## [2.0.0-beta.2] — 2026-11-08
+### Added
+- Lyrics fonts: separate fonts for Persian and for English/Russian lyrics, font weight, live preview.
+- Import your own fonts (`.ttf`, `.otf`, `.woff`, `.woff2`) from Settings or by drag and drop.
+
+### Changed
+- Welcome and goodbye messages no longer end with a full stop.
+
+### Fixed
+- Word-based lyric styles (Karaoke, Word by word, Flying words, Bouncing word) now keep each line on one row instead of stacking words vertically.
+
 ## [2.0.0-beta.1] — 2026-11-07 · "Lights On"
 ### Added
 - Native Windows app with installer (language picker, optional desktop shortcut, music-player registration), uninstaller with feedback page, system tray and start-with-Windows.

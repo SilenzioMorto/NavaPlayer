@@ -25,5 +25,6 @@ contextBridge.exposeInMainWorld('nava', {
     openDir: () => inv('lyrics:openDir'), onProgress: on('lyrics:progress')
   },
   link: { probe: u => inv('link:probe', u) },
+  fonts: { list: () => inv('fonts:list'), import: t => inv('fonts:import', t), importPaths: p => inv('fonts:importPaths', p), remove: f => inv('fonts:remove', f) },
   pathOf: file => { try { return webUtils.getPathForFile(file); } catch (e) { return ''; } }
 });

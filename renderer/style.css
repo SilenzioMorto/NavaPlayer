@@ -368,13 +368,20 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.3) }
 .lyrics.has-lyr::before { opacity: 1 }
 :root[data-theme="light"] .lyrics::before { background: linear-gradient(to top, rgba(255,255,255,.78), transparent) }
 .lyr-pulse { position: relative; width: min(1100px, 78%); will-change: transform; transform-origin: center }
-.lyr-stage { --lc: var(--accent); position: relative; height: calc(var(--lyr-size) * 4.2); font: 800 var(--lyr-size)/1.28 var(--f-display); color: #fff; text-align: center; text-shadow: 0 4px 26px rgba(0,0,0,.75), 0 0 2px rgba(0,0,0,.6) }
-.lyrics[data-font="body"] .lyr-stage { font-family: var(--f-body); font-weight: 800 }
+.lyr-stage { --lc: var(--accent); position: relative; height: calc(var(--lyr-size) * 4.2); font-size: var(--lyr-size); line-height: 1.28; font-family: var(--lyr-font, var(--f-display)); font-weight: var(--lyr-weight, 800); color: #fff; text-align: center; text-shadow: 0 4px 26px rgba(0,0,0,.75), 0 0 2px rgba(0,0,0,.6) }
+.lyr-stage .rtl, .lyr-stage .ln.rtl, .lyr-stage .rtl .w { font-family: var(--lyr-font-fa, var(--f-body)) }
+.fontchips .chip { font-size: 14px; padding: 6px 12px }
+.fontprev { margin: 8px 0; padding: 14px 16px; border-radius: 14px; background: var(--panel-2); border: 1px solid var(--line); display: grid; gap: 6px; font-size: 22px; line-height: 1.5; font-weight: var(--lyr-weight, 800) }
+.fontprev .fa { font-family: var(--lyr-font-fa); text-align: right } .fontprev .en { font-family: var(--lyr-font); direction: ltr; text-align: left }
+.fontprev small { font: 500 11px var(--f-mono); color: var(--muted) }
+.ufonts { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 }
+.ufonts div { display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 12px; border: 1px solid var(--line); border-radius: 10px }
+.ufonts b { flex: 1; font-weight: 600; font-size: 15px } .ufonts span { font: 500 11px var(--f-mono); color: var(--muted) }
 .lyrics[data-color="white"] .lyr-stage { --lc: #fff }
 .lyrics[data-color="gradient"] .lyr-stage .on, .lyrics[data-color="gradient"] .lyr-stage .one:not(.st-karaoke *) { background: linear-gradient(100deg, var(--accent), var(--accent-2), var(--accent-3)); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 4px 18px rgba(0,0,0,.6)) }
 :root[data-theme="light"] .lyr-stage { color: var(--fg); text-shadow: 0 2px 18px rgba(255,255,255,.9); --lc: var(--accent-ink) }
 .lyr-glow .lyr-stage .on, .lyr-glow .lyr-stage .one.in { text-shadow: 0 0 24px color-mix(in oklab, var(--lc) 70%, transparent), 0 4px 26px rgba(0,0,0,.7) }
-.lyr-stage .one { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-wrap: balance; padding: 0 2%; opacity: 0 }
+.lyr-stage .one { position: absolute; inset: 0; display: flex; flex-flow: row wrap; align-items: center; align-content: center; justify-content: center; column-gap: .26em; text-align: center; text-wrap: balance; padding: 0 2%; opacity: 0 }
 .lyr-stage .one.in { opacity: 1 }
 .lyr-stage.gap .one, .lyr-stage.gap .ln.on { opacity: .35 !important; transition: opacity 1s }
 .lyr-stage .w { display: inline-block; white-space: pre }
@@ -395,15 +402,15 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.3) }
 .st-neon .one { color: var(--lc); transition: opacity .3s; text-shadow: 0 0 10px var(--lc), 0 0 34px var(--lc), 0 0 70px color-mix(in oklab, var(--lc) 60%, transparent) }
 .st-neon .one.in { animation: flicker 1.1s linear } .st-neon .one.out { opacity: 0; transition: opacity .25s }
 @keyframes flicker { 0% { opacity: 0 } 8% { opacity: 1 } 12% { opacity: .2 } 18% { opacity: 1 } 24% { opacity: .5 } 30%, 100% { opacity: 1 } }
-.st-cinema { font-size: calc(var(--lyr-size) * .62); font-weight: 600; font-family: var(--f-body) } .st-cinema .one { justify-content: flex-end; padding-bottom: 6%; transition: opacity .45s } .st-cinema .one.out { opacity: 0 }
-.st-typewriter .one { transition: opacity .3s; font-family: var(--f-body); font-weight: 800 } .st-typewriter .one.out { opacity: 0 }
+.st-cinema { font-size: calc(var(--lyr-size) * .62) } .st-cinema .one { align-content: flex-end; padding-bottom: 6%; transition: opacity .45s } .st-cinema .one.out { opacity: 0 }
+.st-typewriter .one { transition: opacity .3s } .st-typewriter .one.out { opacity: 0 }
 .caret { display: inline-block; width: .08em; height: 1em; background: var(--lc); margin-inline-start: .08em; vertical-align: -.12em; animation: blink .8s steps(1) infinite }
 .st-karaoke .one { transition: opacity .4s, transform .6s var(--spring); transform: translateY(14px) } .st-karaoke .one.in { transform: none } .st-karaoke .one.out { opacity: 0; transform: translateY(-14px) }
 .st-karaoke .w { color: transparent; -webkit-background-clip: text; background-clip: text; background-image: linear-gradient(90deg, var(--lc) var(--p, 0%), rgba(255,255,255,.45) var(--p, 0%)); text-shadow: none; filter: drop-shadow(0 3px 14px rgba(0,0,0,.6)) }
 .st-karaoke .rtl .w { background-image: linear-gradient(270deg, var(--lc) var(--p, 0%), rgba(255,255,255,.45) var(--p, 0%)) }
 :root[data-theme="light"] .st-karaoke .w { background-image: linear-gradient(90deg, var(--lc) var(--p, 0%), rgba(12,25,14,.35) var(--p, 0%)) }
 :root[data-theme="light"] .st-karaoke .rtl .w { background-image: linear-gradient(270deg, var(--lc) var(--p, 0%), rgba(12,25,14,.35) var(--p, 0%)) }
-.st-karaoke .next { font-size: .55em; opacity: .5; margin-top: .4em; font-weight: 600 }
+.st-karaoke .next { flex-basis: 100%; font-size: .55em; opacity: .5; margin-top: .4em; font-weight: 600 }
 .st-pop .one, .st-stagger .one, .st-bounce .one { transition: opacity .4s } .st-pop .one.out, .st-stagger .one.out, .st-bounce .one.out { opacity: 0 }
 .st-pop .w { opacity: .12; transform: scale(.6); transition: opacity .25s, transform .45s var(--spring), color .3s } .st-pop .w.on { opacity: 1; transform: none } .st-pop .w.act { color: var(--lc) }
 .st-stagger .w { opacity: 0; transform: translate(var(--rx), var(--ry)) rotate(var(--rr)) scale(.7); filter: blur(6px); transition: opacity .4s, transform .7s var(--spring), filter .5s }

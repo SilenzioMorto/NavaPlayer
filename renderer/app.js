@@ -31,7 +31,7 @@ const DEFAULTS = {
   mode: 'halo', palette: 'theme', bars: 112, sensitivity: 1.2, beatSens: .6, rotate: .35, mirror: true, showCover: true, spinCover: true,
   coverCard: 'left', coverSize: 200, glow: .75, flash: .6, trail: .5, warpZoom: .004, twist: 0, zoom: true, shake: true, shakeAmt: .6, ca: .5,
   particleAmt: 1, dust: true, backdrop: .8, vignette: .7, grain: .25, fps: 0, quality: 1, fft: 2048, autoHide: true,
-  lyrOn: true, lyrStyle: 'wheel', lyrPos: 'bottom', lyrDir: 'down', lyrSize: 44, lyrOffset: 0, lyrGlow: true, lyrColor: 'accent', lyrFont: 'display',
+  lyrOn: true, lyrStyle: 'wheel', lyrPos: 'bottom', lyrDir: 'down', lyrSize: 44, lyrOffset: 0, lyrGlow: true, lyrColor: 'accent', lyrFontEn: 'unbounded', lyrFontFa: 'vazirmatn', lyrWeight: 800,
   aiAuto: true, aiPrefetch: true, aiLang: 'auto', aiModel: 'auto', aiDevice: 'gpu', aiVad: true,
   eq: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], eqPre: 0, eqOn: true, speed: 1, pitch: 0, vinyl: false, bass: 0, reverb: 0, revSize: 2, revDamp: .4,
   d8: false, d8Speed: .12, balance: 0, width: 1, mono: false, normalize: false, fadeIn: 0, fadeOut: 0, booster: false,
@@ -698,8 +698,8 @@ const PLAY_SCHEMA = () => [
   ['lyrPos', 'sLyrPos', 'chips', [opt('bottom', key('pBottom')), opt('center', key('pCenter')), opt('top', key('pTop'))]],
   ['lyrDir', 'sLyrDir', 'chips', [opt('down', key('dDown')), opt('up', key('dUp'))]],
   ['lyrColor', 'sLyrColor', 'chips', [opt('accent', key('cAccent')), opt('white', key('cWhite')), opt('gradient', key('cGrad'))]],
-  ['lyrFont', 'sLyrFont', 'chips', [opt('display', key('fDisplay')), opt('body', key('fBody'))]],
   ['lyrSize', 'sLyrSize', 'range', 24, 90, 2], ['lyrOffset', 'sLyrOffset', 'range', -2, 2, .05], ['lyrGlow', 'sLyrGlow', 'toggle'],
+  ['@sec', 'secFonts'], ['@fonts'], ['lyrWeight', 'sLyrWeight', 'range', 300, 900, 100],
   ['sound', 'tabSound'],
   ['@sec', 'secPlayback'], ['speed', 'sSpeed', 'range', .5, 2, .05], ['pitch', 'sPitch', 'range', -12, 12, .5], ['vinyl', 'sVinyl', 'toggle'],
   ['minDur', 'sMinDur', 'range', 0, 120, 5], ['fadeIn', 'sFadeIn', 'range', 0, 8, .5], ['fadeOut', 'sFadeOut', 'range', 0, 12, .5], ['@sleep'],
@@ -762,6 +762,15 @@ function buildPanel(schema, tabsEl, panesEl, keepTab) {
   if (keepTab) showTab(panesEl, keepTab);
 }
 function customBlock(id) {
+  if (id === 'fonts') {
+    const chips = (attr, cur) => `<div class="chips fontchips">${fontOptions().map(f => `<button class="chip${cur === f.id ? ' on' : ''}" data-${attr}="${esc(f.id)}" style="font-family:${esc(f.css)}">${esc(f.label)}</button>`).join('')}</div>`;
+    return `<div class="srow col"><span>${t('sLyrFontFa')}</span>${chips('fontfa', S.lyrFontFa)}</div>
+      <div class="srow col"><span>${t('sLyrFontEn')}</span>${chips('fonten', S.lyrFontEn)}</div>
+      <div class="fontprev" id="fontPrev"><small>${t('fontPreview')}</small><div class="fa">صدای تو مثل بارون سبزه</div><div class="en">City lights are humming low</div></div>
+      <div class="sec">${t('fontsYours')}</div><div class="ufonts" id="uFonts"></div>
+      <div class="btnrow s"><button class="btn sm pri" id="fontImport"><svg><use href="#i-plus"/></svg>${t('fontImport')}</button></div>
+      <p class="note">${t('fontLicense')}</p>`;
+  }
   if (id === 'sleep') return `<div class="srow col"><span>${t('sSleep')}</span><div class="chips">${[['0', t('off')], ['15', 15], ['30', 30], ['45', 45], ['60', 60], ['90', 90], ['end', t('sleepEnd')]].map(([v, l]) => `<button class="chip${v === '0' ? ' on' : ''}" data-sleep="${v}">${typeof l === 'number' ? fmtN(l) + ' ' + t('minutes') : l}</button>`).join('')}</div></div>`;
   if (id === 'reverb') return `<div class="srow col"><span>${t('rPresetsReverb')}</span><div class="chips">${Object.entries(REVERB_PRESETS).map(([k, [n]]) => `<button class="chip" data-rev="${k}">${L() === 'fa' ? n[0] : n[1]}</button>`).join('')}<button class="chip" data-rev="off">${t('off')}</button></div></div>`;
   if (id === 'booster') return `<div class="srow"><label for="s-booster">${t('sBooster')}</label><span class="switch warn"><input type="checkbox" id="s-booster"><i></i></span></div><p class="note">${t('boosterNote')}</p>`;
@@ -808,6 +817,7 @@ function showTab(panes, id) {
   if (id === 'about') api.app.info().then(i => { const v = $('#aboutVer'); if (v) v.textContent = 'v' + i.version; });
   eqVisible = id === 'eq' && drawer.classList.contains('open');
   if (id === 'eq') requestAnimationFrame(() => drawEq(true));
+  if (id === 'lyrics') renderUserFonts();
 }
 function buildSettings() {
   const at = $('#appTabs .on'), pt = $('#playTabs .on');
@@ -829,7 +839,42 @@ function syncControls() {
   renderModes();
 }
 function set(k, v) { if (S[k] === v) return; S[k] = v; applyKey(k); persist(); }
-function lyrOpts() { lyr.setOptions({ style: S.lyrStyle, dir: S.lyrDir, pos: S.lyrPos, size: S.lyrSize, glow: S.lyrGlow, color: S.lyrColor, font: S.lyrFont }); }
+function lyrOpts() { lyr.setOptions({ style: S.lyrStyle, dir: S.lyrDir, pos: S.lyrPos, size: S.lyrSize, glow: S.lyrGlow, color: S.lyrColor }); }
+/* lyrics fonts: built-in families plus fonts the user imported (stored only on this PC) */
+const BUILTIN_FONTS = [['vazirmatn', 'Vazirmatn', "'Vazirmatn'"], ['unbounded', 'Unbounded', "'Unbounded'"], ['jetbrains', 'JetBrains Mono', "'JetBrains Mono'"],
+  ['segoe', 'Segoe UI', "'Segoe UI'"], ['tahoma', 'Tahoma', 'Tahoma'], ['georgia', 'Georgia', 'Georgia'], ['impact', 'Impact', 'Impact']];
+let userFonts = [];
+const userFamilies = () => [...new Set(userFonts.map(f => f.family))];
+function fontOptions() {
+  return userFamilies().map(f => ({ id: 'user:' + f, label: f, css: `"Nava ${f}"` })).concat(BUILTIN_FONTS.map(([id, label, css]) => ({ id, label, css })));
+}
+function fontCss(id) { const o = fontOptions().find(f => f.id === id); return (o ? o.css : "'Vazirmatn'") + ", 'Vazirmatn', 'Segoe UI', sans-serif"; }
+function applyFonts() {
+  const st = document.documentElement.style;
+  st.setProperty('--lyr-font', fontCss(S.lyrFontEn)); st.setProperty('--lyr-font-fa', fontCss(S.lyrFontFa)); st.setProperty('--lyr-weight', S.lyrWeight);
+}
+const loadedFaces = new Set();
+async function loadUserFonts() {
+  try { userFonts = await api.fonts.list(); } catch (e) { userFonts = []; }
+  for (const f of userFonts) {
+    const k = f.family + '|' + f.weight + '|' + f.italic; if (loadedFaces.has(k)) continue; loadedFaces.add(k);
+    try { const ff = new FontFace('Nava ' + f.family, `url("nava://app/__font/${encodeURIComponent(f.file)}")`, { weight: String(f.weight), style: f.italic ? 'italic' : 'normal' }); document.fonts.add(ff); ff.load().catch(() => {}); } catch (e) {}
+  }
+  applyFonts(); renderUserFonts();
+}
+function renderUserFonts() {
+  const el = $('#uFonts'); if (!el) return;
+  const fams = userFamilies();
+  el.innerHTML = fams.length ? fams.map(f => `<div><b style="font-family:'Nava ${esc(f)}'">${esc(f)}</b><span>${fmtN(userFonts.filter(x => x.family === f).length)}</span><button class="ib bare sm" data-rmfont="${esc(f)}" title="${esc(t('delete'))}"><svg><use href="#i-x"/></svg></button></div>`).join('') : `<p class="muted small">${t('fontNone')}</p>`;
+}
+async function afterFontImport(r) {
+  const before = new Set(userFamilies());
+  await loadUserFonts();
+  const fresh = userFamilies().filter(f => !before.has(f));
+  if (fresh.length && S.lyrFontFa === DEFAULTS.lyrFontFa) set('lyrFontFa', 'user:' + fresh[0]);
+  rebuildPlayPanel(); toast(t('fontImported', { n: fmtN(r.added) }));
+}
+function rebuildPlayPanel() { const pt = $('#playTabs .on'); buildPanel(PLAY_SCHEMA(), $('#playTabs'), $('#playPanes'), pt && pt.dataset.tab); syncControls(); renderUserFonts(); }
 function applyKey(k) {
   switch (k) {
     case 'lang': setLanguage(S.lang); break;
@@ -841,7 +886,8 @@ function applyKey(k) {
     case 'coverCard': ccEl.dataset.pos = S.coverCard; ccEl.hidden = S.coverCard === 'off'; break;
     case 'coverSize': document.documentElement.style.setProperty('--cc', S.coverSize + 'px'); break;
     case 'lyrOn': document.body.classList.toggle('no-lyr', !S.lyrOn); $('#btnLyr').classList.toggle('on', S.lyrOn); if (S.lyrOn && cur) loadLyrics(cur); else { lyr.clear(); setPill(''); } break;
-    case 'lyrStyle': case 'lyrDir': case 'lyrPos': case 'lyrSize': case 'lyrGlow': case 'lyrColor': case 'lyrFont': lyrOpts(); break;
+    case 'lyrStyle': case 'lyrDir': case 'lyrPos': case 'lyrSize': case 'lyrGlow': case 'lyrColor': lyrOpts(); break;
+    case 'lyrFontEn': case 'lyrFontFa': case 'lyrWeight': applyFonts(); break;
     case 'minDur': case 'hideShort': renderSide(); break;
     case 'sideOpen': document.body.classList.toggle('side-closed', !S.sideOpen); $('#btnSide').classList.toggle('on', S.sideOpen); setTimeout(renderModes, 450); break;
     case 'autoCycle': setupCycle(); break;
@@ -886,6 +932,12 @@ async function panelClick(e) {
   }
   if (chip && chip.dataset.eqp) { S.eq = EQ_PRESETS[chip.dataset.eqp][1].slice(); applyEq(); persist(); syncControls(); drawEq(); return; }
   if (chip && chip.dataset.pc) { pcat = chip.dataset.pc; $$('#pcats .chip').forEach(c => c.classList.toggle('on', c === chip)); renderPresets(); return; }
+  if (chip && (chip.dataset.fontfa || chip.dataset.fonten)) {
+    const fa = !!chip.dataset.fontfa; set(fa ? 'lyrFontFa' : 'lyrFontEn', fa ? chip.dataset.fontfa : chip.dataset.fonten);
+    $$(fa ? '[data-fontfa]' : '[data-fonten]').forEach(c => c.classList.toggle('on', c === chip)); return;
+  }
+  if (e.target.closest('#fontImport')) { const r = await api.fonts.import(t('fontImport')); if (r.added) afterFontImport(r); return; }
+  const rmf = e.target.closest('[data-rmfont]'); if (rmf) { const fam = rmf.dataset.rmfont; userFonts = await api.fonts.remove(fam); if (S.lyrFontFa === 'user:' + fam) set('lyrFontFa', DEFAULTS.lyrFontFa); if (S.lyrFontEn === 'user:' + fam) set('lyrFontEn', DEFAULTS.lyrFontEn); rebuildPlayPanel(); return; }
   if (chip && chip.dataset.sleep) { $$('[data-sleep]').forEach(c => c.classList.toggle('on', c === chip)); setSleep(chip.dataset.sleep); return; }
   if (chip && chip.dataset.rev) { const p = chip.dataset.rev === 'off' ? { mix: 0, size: S.revSize, damp: S.revDamp } : REVERB_PRESETS[chip.dataset.rev][1]; S.reverb = p.mix; S.revSize = p.size; S.revDamp = p.damp; applyKey('reverb'); persist(); syncControls(); return; }
   if (chip && chip.dataset.closeAct) { appCfg.closeAction = await api.app.setCfg('closeAction', chip.dataset.closeAct); $$('[data-close-act]').forEach(c => c.classList.toggle('on', c === chip)); return; }
@@ -1021,7 +1073,7 @@ function renderPresets() {
     return `<button class="preset" data-preset="${i}"><i style="background:${presetGrad(p.s)}"><span class="pm">${m ? esc(L() === 'fa' ? m[1] : m[2]) : t('perfPreset')}</span></i><b>${esc(nm(p.n))}</b><span>${ly ? esc(L() === 'fa' ? ly[1] : ly[2]) : ''}</span>${p.mine ? `<em data-delp="${mi}">×</em>` : ''}</button>`;
   }).join('') || `<p class="muted">${t('pNone')}</p>`;
 }
-const PRESET_KEYS = ['mode', 'palette', 'bars', 'sensitivity', 'beatSens', 'rotate', 'mirror', 'showCover', 'spinCover', 'glow', 'flash', 'trail', 'warpZoom', 'twist', 'zoom', 'shake', 'shakeAmt', 'ca', 'particleAmt', 'dust', 'backdrop', 'vignette', 'grain', 'lyrStyle', 'lyrPos', 'lyrDir', 'lyrSize', 'lyrColor', 'lyrFont'];
+const PRESET_KEYS = ['mode', 'palette', 'bars', 'sensitivity', 'beatSens', 'rotate', 'mirror', 'showCover', 'spinCover', 'glow', 'flash', 'trail', 'warpZoom', 'twist', 'zoom', 'shake', 'shakeAmt', 'ca', 'particleAmt', 'dust', 'backdrop', 'vignette', 'grain', 'lyrStyle', 'lyrPos', 'lyrDir', 'lyrSize', 'lyrColor'];
 function applyPreset(p) { Object.entries(p).forEach(([k, v]) => { if (k === 'mode') setMode(v, true); else { S[k] = Array.isArray(v) ? v.slice() : v; applyKey(k); } }); persist(); syncControls(); }
 function randomPreset() { const arr = allPresets().filter(p => p.cat !== 'perf'); const p = arr[(Math.random() * arr.length) | 0]; applyPreset(p.s); toast(t('pApplied', { n: nm(p.n) }), 1500); }
 function savePreset() {
@@ -1174,6 +1226,8 @@ window.addEventListener('dragover', e => e.preventDefault());
 window.addEventListener('drop', async e => {
   e.preventDefault(); dragN = 0; dropEl.classList.remove('show');
   const paths = [...e.dataTransfer.files].map(f => api.pathOf(f)).filter(Boolean);
+  const fontPaths = paths.filter(p => /\.(ttf|otf|woff2?)$/i.test(p));
+  if (fontPaths.length) { const r = await api.fonts.importPaths(fontPaths); if (r.added) afterFontImport(r); if (fontPaths.length === paths.length) return; }
   if (!paths.length) { const txt = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain'); if (txt) openLink(txt, store.get('linkViz', true)); return; }
   toast(t('adding'), 1200);
   const ts = await api.lib.addPaths(paths);
@@ -1217,13 +1271,13 @@ async function firstRun() {
 }
 
 /* ================= boot ================= */
-window.__nava = { audioTime: () => audio.currentTime, lyr, S, get cur() { return cur; }, runAction, openDrawer, closeDrawers, playTrack, get tracks() { return tracks; }, linkDialog, setBooster, I18N, runTour };
+window.__nava = { importFonts: p => api.fonts.importPaths(p).then(afterFontImport), loadUserFonts, audioTime: () => audio.currentTime, lyr, S, get cur() { return cur; }, runAction, openDrawer, closeDrawers, playTrack, get tracks() { return tracks; }, linkDialog, setBooster, I18N, runTour };
 (async () => {
   status(null, 20);
   I18N.setLang(S.lang);
   try { appCfg = await api.app.getCfg(); } catch (e) {}
   applyTheme(S.theme);
-  buildSettings(); buildModes(); applyAll(); syncControls(); setMediaKeys(); lyrOpts();
+  buildSettings(); buildModes(); applyAll(); syncControls(); setMediaKeys(); lyrOpts(); applyFonts(); loadUserFonts();
   $('#mTitle').textContent = t('noneSelected'); $('#mArtist').textContent = t('pickOne');
   api.app.tray({ show: t('trayShow'), play: t('kToggle'), next: t('kNext'), prev: t('kPrev'), quit: t('closeQuit'), tip: 'Nava Player', trayHint: t('trayHint') });
   requestAnimationFrame(frame);

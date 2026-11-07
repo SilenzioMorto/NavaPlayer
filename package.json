@@ -1,7 +1,7 @@
 {
   "name": "nava-player",
   "productName": "Nava Player",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0-beta.2",
   "description": "Nava Player — visual music player with GPU effects and on-device AI lyrics",
   "main": "main.js",
   "author": {
