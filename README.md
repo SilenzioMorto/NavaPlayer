@@ -4,13 +4,13 @@
 
 <br>
 
-[![Version](https://img.shields.io/badge/version-2.0.0--beta.2-86EF6C?style=for-the-badge&labelColor=0A120C)](../../releases)
+[![Version](https://img.shields.io/badge/version-2.0.0--beta.3-86EF6C?style=for-the-badge&labelColor=0A120C)](../../releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-3EE5D0?style=for-the-badge&labelColor=0A120C&logo=windows&logoColor=white)](../../releases)
 [![Status](https://img.shields.io/badge/status-beta-FF7EB8?style=for-the-badge&labelColor=0A120C)](#-roadmap)
 [![License](https://img.shields.io/badge/license-proprietary-A592FF?style=for-the-badge&labelColor=0A120C)](LICENSE)
 
 **Nava turns your music library into a live light show.**<br>
-16 GPU visuals that dance to the bass and the vocals, synced lyrics written on your own PC by AI,<br>
+28 GPU visuals that dance to the bass and the vocals, synced lyrics written on your own PC by AI,<br>
 a studio-style sound lab, and a design you'll actually want to look at.
 
 [**⬇ Download for Windows**](../../releases) · [Installation guide](docs/INSTALL.md) · [What's new](CHANGELOG.md) · [Report a bug](../../issues/new/choose)
@@ -43,9 +43,12 @@ a studio-style sound lab, and a design you'll actually want to look at.
 ## 🎧 Features
 
 ### Visuals
-- **16 real-time GPU visuals**: Halo, Spectrum, Nebula, Liquid, Tunnel, Orbit, Scope, Skyline, Kaleido, Aurora, Warp, Ripple, Galaxy, Horizon, Black hole and Prism.
+- **28 real-time GPU visuals**: Halo, Spectrum, Nebula, Liquid, Tunnel, Orbit, Scope, Skyline, Kaleido, Aurora, Warp, Ripple, Galaxy, Horizon, Black hole, Prism, Pulsar, Hive, Vortex, Terrain, Radar, Lava lamp, Mandala, Plasma, DNA helix, Code rain, Cells, Fractal.
 - Everything renders in **WebGL2 on your graphics card**: bloom, echo trails, warp zoom, beat flash, chromatic shift, film grain and particle systems — while the CPU stays nearly idle.
 - Visuals react separately to **bass, mids, vocals and highs**, with automatic beat detection.
+- **Every kick hits the whole scene**: a punchy zoom-in, a directional camera shake with a little rotation, a light flash in the theme colour or white, and floating particles that swell, rush towards you and release a soft glow.
+- **Lifeless until the music hits**: the scene can stay dark and colourless and only come alive — light, colour and glow — when the bass kicks in or the singer starts. You choose how dark, how sensitive, how fast, and whether it wakes on bass, vocals or both.
+- **Light control**: overall brightness, glow threshold and a highlight limit stop the scene from glaring when nothing is happening.
 - **40 hand-tuned presets** (Night Club, Event Horizon, Sakura Dream, Synthwave, Crystal…), your own saved presets, and auto-switching every 30 s, every minute or every song.
 - The album cover can spin like vinyl in the centre of the visual, and a large cover card sits beside the stage.
 
@@ -53,6 +56,7 @@ a studio-style sound lab, and a design you'll actually want to look at.
 - Nava **writes synced lyrics while the song plays** using OpenAI's Whisper (large-v3 and large-v3-turbo) through whisper.cpp.
 - Supports **Persian, English and Russian**, with automatic language detection and a one-click "regenerate as…" menu.
 - **Persian gets special care**: the accurate large-v3 model is chosen automatically, instrumental parts are skipped with voice detection (VAD), and the text is cleaned up (Persian letter forms, half-spaces, punctuation).
+- **Word-accurate timing**: every word gets its own timestamp from the model's attention alignment (DTW), mapped back onto the real song timeline, so karaoke and word-by-word styles land on the beat.
 - Runs on **NVIDIA GPUs with CUDA** (a 4-minute song takes about 15 seconds) or on the CPU.
 - **No audio ever leaves your computer.** Lyrics are cached and saved as `.lrc` files — in a folder you choose, or next to each song.
 - The next song in the queue is prepared in advance.
@@ -94,6 +98,7 @@ a studio-style sound lab, and a design you'll actually want to look at.
 ### Design
 - **English and Persian** interface, with full right-to-left layout.
 - **Six themes** — Nava Lime, Daylight, Midnight, **Sakura**, Ember, Glacier — plus a **theme builder** for your own colours.
+- **Glass panels**: one click turns the controls, library and settings into frosted glass with the visuals flowing behind them; blur and transparency are adjustable.
 - An animated loading screen, a short welcome message on launch (20 rotating messages per language), a goodbye message on exit, a first-run setup and a **guided tour** for new users.
 
 <table>
@@ -145,6 +150,7 @@ Nava has two settings panels: **⚙ App settings** (top bar) for the app itself,
 |---|---|
 | Built-in themes | **Nava Lime**, **Daylight**, **Midnight**, **Sakura**, **Ember**, **Glacier**. |
 | Theme builder | Choose a dark or light base, then background, panel, text, accent and second accent colours. Preview live, name it and save. Custom themes appear next to the built-in ones and can be deleted. |
+| Glass panels | Frosted-glass controls, library, settings and dialogs with the visuals behind them. Adjustable **blur** (0–40 px) and **transparency**. Also the glass button in the top bar. |
 | Quick switch | The palette button in the top bar (or `T`) cycles through every theme with a circular reveal animation. |
 </details>
 
@@ -188,7 +194,7 @@ Nava has two settings panels: **⚙ App settings** (top bar) for the app itself,
 
 | Setting | What it does |
 |---|---|
-| Visual mode | 16 modes: Halo, Spectrum, Nebula, Liquid, Tunnel, Orbit, Scope, Skyline, Kaleido, Aurora, Warp, Ripple, Galaxy, Horizon, Black hole, Prism. Also in the bar above the stage, or `V` / `1`–`9`. |
+| Visual mode | 28 modes: Halo, Spectrum, Nebula, Liquid, Tunnel, Orbit, Scope, Skyline, Kaleido, Aurora, Warp, Ripple, Galaxy, Horizon, Black hole, Prism, Pulsar, Hive, Vortex, Terrain, Radar, Lava lamp, Mandala, Plasma, DNA helix, Code rain, Cells, Fractal. Also in the bar above the stage, or `V` / `1`–`9`. |
 | Color palette | 22 palettes: Theme, Mono, Duo, Rainbow, From cover, Aurora, Sakura, Sunset, Ocean, Fire, Ice, Candy, Matrix, Gold, Vapor, Monochrome, Toxic, Ruby, Forest, Lavender, Citrus, Deep sea. |
 | Bar count | 32–192 bars for bar-based visuals. |
 | Audio sensitivity / Beat sensitivity | How strongly visuals react to the music and how easily kicks are detected. |
@@ -203,7 +209,13 @@ Nava has two settings panels: **⚙ App settings** (top bar) for the app itself,
 <details>
 <summary><b>🎚 Sound & scene → Effects</b></summary>
 
-Glow (bloom) · Beat flash · Motion trails · Echo zoom · Echo twist · Bass zoom · Beat shake + amount · Chromatic beat · Particle amount · Floating dust · Cover backdrop · Vignette · Film grain
+| Group | Settings |
+|---|---|
+| Look | Glow (bloom) · Beat flash · Motion trails · Echo zoom · Echo twist · Bass zoom · Beat shake + amount · Chromatic beat · Particle amount · Cover backdrop · Vignette · Film grain |
+| Bass reactions | **Bass zoom-in (punch)** · **Flash color** (theme or white) · **Shake rotation** |
+| Particles | Floating dust on/off · **Particle size** · **Particle bass reaction** (how much they grow and rush towards you) · **Particle glow** |
+| Lifeless until the music hits | On/off · **How lifeless** (darkness and colour loss) · **Wake-up sensitivity** · **Transition speed** · **Wakes up on** bass, vocals or both |
+| Scene light | **Overall brightness** · **Glow threshold** · **Highlight limit** (stops glare) |
 </details>
 
 <details>
@@ -248,9 +260,24 @@ Glow (bloom) · Beat flash · Motion trails · Echo zoom · Echo twist · Bass z
 - **The 40 built-in presets:** Night Club · Concert · Serenity · Neon Tunnel · Retro LED · Minimal · Cover Kaleidoscope · Northern Lights · Hyperspace · Raindrop · Galaxy · Synthwave · Oscilloscope · Golden Orbit · Volcano · Frost · The Grid · Candy Pop · Ruby Rush · Misty Forest · Infinite Echo · Noir · Vinyl · Beach Sunset · Neon Mist · Light Dance · Pure Cover · Arcade · Night Ride · Molten Gold · Event Horizon · Cover Singularity · Crystal · Prism Rave · Sakura Dream · Pink Bloom · Lavender Fields · Citrus Burst · Abyss · Light & Efficient
 </details>
 
+<table>
+<tr>
+<td width="33%"><img src="docs/screenshots/12-pulsar.png" alt="Pulsar"></td>
+<td width="33%"><img src="docs/screenshots/13-hive.png" alt="Hive"></td>
+<td width="33%"><img src="docs/screenshots/14-vortex.png" alt="Vortex"></td>
+</tr>
+<tr><td align="center"><b>Pulsar</b></td><td align="center"><b>Hive</b></td><td align="center"><b>Vortex</b></td></tr>
+<tr>
+<td width="33%"><img src="docs/screenshots/16-mood-quiet.png" alt="Lifeless scene before the drop"></td>
+<td width="33%"><img src="docs/screenshots/17-mood-awake.png" alt="Scene waking up on the bass"></td>
+<td width="33%"><img src="docs/screenshots/15-glass-panels.png" alt="Glass panels"></td>
+</tr>
+<tr><td align="center"><b>Lifeless</b> before the drop…</td><td align="center">…<b>alive</b> when the bass hits</td><td align="center"><b>Glass panels</b></td></tr>
+</table>
+
 ## 📥 Installation
 
-1. Download **`NavaPlayer-Setup-2.0.0-beta.2.exe`** from the [Releases page](../../releases).
+1. Download **`NavaPlayer-Setup-2.0.0-beta.3.exe`** from the [Releases page](../../releases).
 2. Run it. If Windows SmartScreen shows *"Windows protected your PC"*, click **More info → Run anyway** (the beta isn't code-signed yet).
 3. Pick your language, accept the license, choose a folder, and keep **Create Desktop Shortcut** ticked if you want one.
 4. Launch Nava, choose your language and theme, and decide where AI lyrics should be saved.

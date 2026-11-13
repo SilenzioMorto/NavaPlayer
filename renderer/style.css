@@ -106,6 +106,19 @@ kbd { font: 500 11px var(--f-mono); border: 1px solid var(--line); border-bottom
 /* ---------- stage ---------- */
 .stage { grid-area: stage; position: relative; overflow: hidden; background: #000; min-width: 0 }
 #gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block }
+.stage-ui { position: absolute; inset: 0; transition: inset .45s var(--ease) }
+/* glass mode: the visual fills the whole window and the panels float over it */
+body.glass .stage { grid-area: 1 / 1 / -1 / -1; z-index: 0 }
+body.glass .titlebar, body.glass .side, body.glass .dock { position: relative; z-index: 5 }
+body.glass .stage-ui { top: var(--tb); bottom: var(--dock-h, 90px); inset-inline-start: var(--side); inset-inline-end: 0 }
+body.glass.side-closed .stage-ui { inset-inline-start: 0 }
+body.glass.stage .stage-ui { inset: 0 }
+body.glass .titlebar, body.glass .side, body.glass .dock, body.glass .drawer, body.glass .modes, body.glass .ai-pill, body.glass .mbox, body.glass .toast, body.glass .lyr-menu, body.glass .embed, body.glass .card, body.glass .stagehint {
+  background: color-mix(in oklab, var(--panel) calc(var(--glass-a, .5) * 100%), transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 18px)) saturate(1.5); backdrop-filter: blur(var(--glass-blur, 18px)) saturate(1.5) }
+body.glass .titlebar { background: color-mix(in oklab, var(--bg) calc(var(--glass-a, .5) * 100%), transparent) }
+body.glass .search, body.glass .libbar select, body.glass .srow input[type=text] { background: color-mix(in oklab, var(--panel-2) 60%, transparent) }
+body.glass .drawer { box-shadow: 0 24px 60px -20px rgba(0,0,0,.6), inset 0 0 0 1px color-mix(in oklab, var(--fg) 8%, transparent) }
 .modes { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 340px); display: flex; gap: 2px; padding: 4px; border-radius: 999px; overflow-x: auto; scrollbar-width: none;
   background: color-mix(in oklab, var(--panel) 82%, transparent); border: 1px solid var(--line); z-index: 6; transition: opacity .5s, transform .5s var(--ease) }
 .modes::-webkit-scrollbar { display: none }

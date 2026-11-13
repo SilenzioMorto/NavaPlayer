@@ -369,25 +369,39 @@ function buildLyrics(json, lang) {
     if (avgP < 0.3) continue;
     const t0 = (s.offsets && s.offsets.from || 0) / 1000, t1 = (s.offsets && s.offsets.to || 0) / 1000;
     if (t1 - t0 < 0.15) continue;
+    // token times come from DTW (10 ms units). With voice detection on, whisper.cpp reports them on the
+    // trimmed (silence-removed) timeline, so map each segment's tokens back onto the segment's real span.
+    const rawT = toks.map(tk => typeof tk.t_dtw === 'number' && tk.t_dtw >= 0 ? tk.t_dtw / 100 : (tk.offsets && tk.offsets.from || 0) / 1000);
+    const ra = Math.min(...rawT), rb = Math.max(...rawT), span = rb - ra;
+    const mapT = x => span > 0.05 ? t0 + (x - ra) * (t1 - t0) / span * 0.97 : t0;
     const words = []; let cur = null;
-    for (const tk of toks) {
-      const raw = tk.text || '', tf = (tk.offsets && tk.offsets.from || 0) / 1000, tt = (tk.offsets && tk.offsets.to || 0) / 1000;
+    for (let ti = 0; ti < toks.length; ti++) {
+      const tk = toks[ti], raw = tk.text || '';
+      const tf = mapT(rawT[ti]), tt = ti + 1 < toks.length ? mapT(rawT[ti + 1]) : t1;
       if (!cur || raw.startsWith(' ')) { if (cur) words.push(cur); cur = { raw, t0: tf, t1: tt }; } else { cur.raw += raw; cur.t1 = tt; }
     }
     if (cur) words.push(cur);
     if (lang === 'fa') text = normalizeFa(text);
     let ws = words.map(w => ({ w: decodeL1(w.raw).trim(), t0: w.t0, t1: Math.max(w.t1, w.t0 + 0.05) })).filter(w => w.w);
+    // keep word starts monotonic and inside the segment
+    for (let i = 0; i < ws.length; i++) ws[i].t0 = Math.min(Math.max(ws[i].t0, i ? ws[i - 1].t0 + 0.04 : t0 - 0.25), t1);
     const plain = text.split(' ');
-    if (lang === 'fa' || ws.length !== plain.length || ws.some(w => w.w.includes('�'))) {
-      const tot = plain.reduce((a, w) => a + w.length + 1, 0), dur = t1 - t0; let acc = 0;
-      const starts = ws.length === plain.length ? ws.map(w => w.t0) : null;
-      ws = plain.map((w, i) => { const a = t0 + dur * acc / tot; acc += w.length + 1; return { w, t0: starts ? starts[i] : a, t1: t0 + dur * acc / tot }; });
+    if (lang === 'fa' || ws.length !== plain.length || ws.some(w => w.w.includes('\uFFFD'))) {
+      // map the cleaned words onto the model's word timeline, so DTW timing survives the Persian clean-up
+      const tl = ws.map(w => w.t0), n = plain.length;
+      ws = plain.map((w, i) => {
+        let a;
+        if (tl.length >= 2) { const x = n > 1 ? i * (tl.length - 1) / (n - 1) : 0, k = Math.floor(x), f = x - k; a = tl[k] + (tl[Math.min(k + 1, tl.length - 1)] - tl[k]) * f; }
+        else a = t0 + (t1 - t0) * i / n;
+        return { w, t0: a, t1: a };
+      });
     }
+    for (let i = 0; i < ws.length; i++) ws[i].t1 = Math.max(ws[i].t0 + 0.08, i + 1 < ws.length ? ws[i + 1].t0 : Math.max(t1, ws[i].t0 + 0.3));
     const MAXW = 9;
     for (let i = 0; i < ws.length; i += MAXW) {
       const part = ws.slice(i, i + MAXW);
       if (ws.length - (i + MAXW) > 0 && ws.length - (i + MAXW) < 3) { part.push(...ws.slice(i + MAXW)); i = ws.length; }
-      lines.push({ t0: part[0].t0, t1: part[part.length - 1].t1, text: part.map(w => w.w).join(' '), words: part });
+      lines.push({ t0: Math.max(0, part[0].t0 - 0.05), t1: part[part.length - 1].t1, text: part.map(w => w.w).join(' '), words: part });
     }
   }
   const out = [];
@@ -405,7 +419,7 @@ function runWhisper(exe, args, onPct) {
   return new Promise(resolve => {
     const p = spawn(exe, args, { cwd: path.dirname(exe), windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     let err = ''; const logf = path.join(USER, 'whisper-last.log');
-    try { fs.writeFileSync(logf, exe + ' ' + args.join(' ') + '\n\n'); } catch (e) {}
+    try { fs.appendFileSync(logf, '\n===== ' + exe + ' ' + args.join(' ') + '\n\n'); } catch (e) {}
     const onData = d => {
       const s = d.toString(); err += s; if (err.length > 20000) err = err.slice(-10000);
       try { fs.appendFileSync(logf, s.replace(/^\[\d\d:[^\n]*\n?/gm, '')); } catch (e) {}
@@ -422,11 +436,13 @@ async function transcribe(job) {
   const key = lyricKey(job.track);
   const wav = path.join(DIR.tmp, key + '.wav'), outBase = path.join(DIR.tmp, key);
   await fsp.writeFile(wav, Buffer.from(job.wav));
+  try { fs.writeFileSync(path.join(USER, 'whisper-last.log'), ''); } catch (e) {}
   const lang = ['fa', 'en', 'ru'].includes(job.lang) ? job.lang : 'auto';
   let mk = job.model === 'large' || job.model === 'turbo' ? job.model : (lang === 'fa' && st.large ? 'large' : (st.turbo ? 'turbo' : 'large'));
   if (!hasModel(mk)) mk = hasModel('turbo') ? 'turbo' : 'large';
   const threads = String(Math.max(2, Math.min(8, os.cpus().length - 1)));
   const base = ['-m', path.join(DIR.ai, MODELS[mk].file), '-f', wav, '-l', lang, '-ojf', '-of', outBase, '-t', threads, '-pp', '-mc', '64', '-sns'];
+  const dtwArgs = ['-dtw', mk === 'large' ? 'large.v3' : 'large.v3.turbo', '-nfa'];
   if (PROMPTS[lang]) base.push('--prompt', PROMPTS[lang]);
   const vadArgs = st.vad && job.vad !== false ? ['--vad', '-vm', path.join(DIR.ai, MODELS.vad.file), '-vsd', '200', '-vp', '400'] : [];
   const exes = [], cuda = cudaExe(), cpu = findExe(path.join(DIR.ai, 'cpu'));
@@ -434,20 +450,22 @@ async function transcribe(job) {
   if (cpu) exes.push([cpu, ['-bs', '2', '-bo', '2']]);
   let res = null, used = '';
   for (const [exe, extra] of exes) {
-    for (const va of vadArgs.length ? [vadArgs, []] : [[]]) {
+    const tries = vadArgs.length ? [dtwArgs.concat(vadArgs), dtwArgs, vadArgs, []] : [dtwArgs, []];
+    for (const va of tries) {
       try { fs.unlinkSync(outBase + '.json'); } catch (e) {}
       res = await runWhisper(exe, base.concat(extra, va), pct => send('lyrics:progress', { path: job.track.path, pct }));
-      if (res.code === 0 && fs.existsSync(outBase + '.json')) { used = exe === cuda && !/no GPU found/i.test(res.err) ? 'GPU' : 'CPU'; break; }
+      if (res.code === 0 && fs.existsSync(outBase + '.json')) { used = exe === cuda && /using CUDA\d* backend|CUDA0/i.test(res.err) ? 'GPU' : 'CPU'; break; }
     }
     if (used) break;
   }
   try { fs.unlinkSync(wav); } catch (e) {}
   if (!used) throw new Error('WHISPER_FAILED: ' + (res ? res.err.split('\n').filter(Boolean).slice(-2).join(' ') : ''));
   const json = JSON.parse(await fsp.readFile(outBase + '.json', 'latin1'));
+  if (process.env.NAVA_KEEPJSON) { try { fs.copyFileSync(outBase + '.json', path.join(USER, 'whisper-last.json')); } catch (e) {} }
   try { fs.unlinkSync(outBase + '.json'); } catch (e) {}
   let detected = (json.result && json.result.language) || lang;
   if (['ar', 'ur', 'ps'].includes(detected) && job.hintFa) detected = 'fa';
-  const data = { v: 2, lang: detected, device: used, model: mk, created: Date.now(), lines: buildLyrics(json, detected) };
+  const data = { v: 3, lang: detected, device: used, model: mk, created: Date.now(), lines: buildLyrics(json, detected) };
   await saveLyrics(job.track, data);
   return data;
 }
@@ -597,7 +615,7 @@ function ipc() {
   ipcMain.handle('win:fullscreen', () => { win.setFullScreen(!win.isFullScreen()); return win.isFullScreen(); });
   ipcMain.handle('ai:status', async () => { await detectNvidia(); return aiStatus(); });
   ipcMain.handle('ai:setup', async (e, what) => { try { return await aiSetup(what); } catch (er) { send('ai:progress', { error: er.message }); return aiStatus(); } });
-  ipcMain.handle('lyrics:get', async (e, t) => { try { return JSON.parse(await fsp.readFile(path.join(DIR.lyricsCache, lyricKey(t) + '.json'), 'utf8')); } catch (er) { return null; } });
+  ipcMain.handle('lyrics:get', async (e, t) => { try { const d = JSON.parse(await fsp.readFile(path.join(DIR.lyricsCache, lyricKey(t) + '.json'), 'utf8')); return d && d.v >= 3 ? d : null; } catch (er) { return null; } });
   ipcMain.handle('lyrics:delete', async (e, t) => { try { await fsp.unlink(path.join(DIR.lyricsCache, lyricKey(t) + '.json')); } catch (er) {} return true; });
   ipcMain.handle('lyrics:clearAll', async () => { for (const f of await fsp.readdir(DIR.lyricsCache)) { try { await fsp.unlink(path.join(DIR.lyricsCache, f)); } catch (er) {} } return true; });
   ipcMain.handle('lyrics:chooseDir', async (e, title) => {

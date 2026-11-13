@@ -33,6 +33,7 @@
   <symbol id="i-side" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M14.5 4.5v15"/></symbol>
   <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3.5H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5z"/><path d="M14 3.5v5h5"/></symbol>
   <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-4.6L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.6L20 16M20 20v-4h-4"/></symbol>
+  <symbol id="i-glass" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M7 16 16 7M11 17l6-6M7 12l5-5"/></symbol>
   <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></symbol>
   <symbol id="i-eq" viewBox="0 0 24 24"><path d="M6 20v-6M6 10V4M12 20v-9M12 7V4M18 20v-4M18 12V4"/><path d="M4 14h4M10 7h4M16 16h4"/></symbol>
   <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 7.5 2.8C19.5 15.4 12 20 12 20z"/></symbol>
@@ -45,6 +46,7 @@
   <div class="search" id="searchBox"><svg><use href="#i-search"/></svg><input id="q" type="search" data-i18n-ph="search"></div>
   <div class="tb-actions">
     <button class="ib" id="btnLink" data-i18n-title="tLink"><svg><use href="#i-link"/></svg></button>
+    <button class="ib" id="btnGlass" data-i18n-title="tGlass"><svg><use href="#i-glass"/></svg></button>
     <button class="ib" id="btnSide" data-i18n-title="tLibrary"><svg><use href="#i-side"/></svg></button>
     <button class="ib" id="btnTheme" data-i18n-title="tTheme"><svg><use href="#i-palette"/></svg></button>
     <button class="ib" id="btnStage" data-i18n-title="tStage"><svg><use href="#i-stage"/></svg></button>
@@ -77,6 +79,7 @@
 
 <main class="stage" id="stage">
   <canvas id="gl"></canvas>
+  <div class="stage-ui" id="stageUi">
   <nav class="modes" id="modes"></nav>
   <button class="ai-pill" id="aiPill" hidden></button>
   <div class="lyr-menu" id="lyrMenu" hidden>
@@ -100,6 +103,7 @@
   <div class="hello" id="stageHello" hidden>
     <h2 data-i18n="helloTitle"></h2>
     <div class="btnrow"><button class="btn pri" id="helloPlay"><svg><use href="#i-play"/></svg><span data-i18n="helloPlay"></span></button><button class="btn" id="helloShuffle"><svg><use href="#i-shuffle"/></svg><span data-i18n="helloShuffle"></span></button></div>
+  </div>
   </div>
   <div class="stagehint"><span><span data-i18n="stageHint"></span> <kbd>H</kbd> / <kbd>Esc</kbd></span><button class="btn sm" id="btnExitStage" data-i18n="exit"></button></div>
 </main>

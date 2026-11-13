@@ -2,6 +2,23 @@
 
 All notable changes to Nava Player are listed here.
 
+## [2.0.0-beta.3] — 2026-11-13 · "Drop"
+### Added
+- 12 new visuals: Pulsar, Hive, Vortex, Terrain, Radar, Lava lamp, Mandala, Plasma, DNA helix, Code rain, Cells, Fractal (28 in total).
+- Bass zoom-in (punch), a real light flash in the theme colour or white, and a directional camera shake with rotation.
+- Particles that grow, rush towards you and glow on every kick, with size, reaction and glow settings.
+- "Lifeless until the music hits": the scene stays dark and colourless until the bass or vocals come in, with depth, sensitivity, speed and source settings.
+- Scene light settings: overall brightness, glow threshold and highlight limit.
+- Glass panels: frosted-glass controls, library, settings and dialogs with adjustable blur and transparency, plus a quick toggle in the top bar.
+
+### Improved
+- AI lyrics timing: word-level alignment (DTW) mapped back onto the real song timeline, so words land where they are sung. Previously generated lyrics are refreshed automatically.
+- Persian transcription keeps word timing after text clean-up.
+- Calmer defaults: less glare from bright visuals such as Horizon.
+
+### Fixed
+- The GPU engine was sometimes reported as CPU in the lyrics badge.
+
 ## [2.0.0-beta.2] — 2026-11-08
 ### Added
 - Lyrics fonts: separate fonts for Persian and for English/Russian lyrics, font weight, live preview.

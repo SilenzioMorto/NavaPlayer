@@ -30,6 +30,9 @@ const DEFAULTS = {
   welcome: true, outro: true, mediaKeys: true, notify: false, uiAnim: true,
   mode: 'halo', palette: 'theme', bars: 112, sensitivity: 1.2, beatSens: .6, rotate: .35, mirror: true, showCover: true, spinCover: true,
   coverCard: 'left', coverSize: 200, glow: .75, flash: .6, trail: .5, warpZoom: .004, twist: 0, zoom: true, shake: true, shakeAmt: .6, ca: .5,
+  punch: .5, flashCol: 'accent', shakeRot: .4, dustSize: 1, dustBeat: .7, dustGlow: .6,
+  mood: false, moodDepth: .75, moodTrigger: .5, moodSpeed: .5, moodSource: 'both', exposure: .9, glowThr: .32, maxBright: .9,
+  glass: false, glassBlur: 18, glassAlpha: .5,
   particleAmt: 1, dust: true, backdrop: .8, vignette: .7, grain: .25, fps: 0, quality: 1, fft: 2048, autoHide: true,
   lyrOn: true, lyrStyle: 'wheel', lyrPos: 'bottom', lyrDir: 'down', lyrSize: 44, lyrOffset: 0, lyrGlow: true, lyrColor: 'accent', lyrFontEn: 'unbounded', lyrFontFa: 'vazirmatn', lyrWeight: 800,
   aiAuto: true, aiPrefetch: true, aiLang: 'auto', aiModel: 'auto', aiDevice: 'gpu', aiVad: true,
@@ -126,6 +129,7 @@ function applySound() {
 /* analysis */
 const D = { bass: 0, mid: 0, vocal: 0, high: 0, energy: 0, beat: 0, t: 0, idle: 1 };
 const agc = { bass: .35, mid: .3, vocal: .25, high: .18 };
+const shakeDir = [1, 0]; let shakeSpin = 1, life = 0;
 let bassAvg = 0, lastBeat = 0, wasActive = false, playing = false, streamViz = false;
 const rings = [];
 const bandRaw = (lo, hi) => { let a = clamp(Math.round(lo / binHz), 1, freq.length - 1), b = clamp(Math.round(hi / binHz), a, freq.length - 1), s = 0; for (let i = a; i <= b; i++) s += freq[i]; return s / ((b - a + 1) * 255); };
@@ -151,7 +155,7 @@ function analyze(dt) {
   if (active) {
     band('bass', bandRaw(30, 150), dt, .95); band('mid', bandRaw(150, 500), dt, .8); band('vocal', bandRaw(500, 3500), dt, .85); band('high', bandRaw(4000, 14000), dt, .8);
     const e = bandRaw(40, 130); bassAvg += (e - bassAvg) * (1 - Math.exp(-dt * 2.5));
-    if (e > bassAvg * (1.34 - S.beatSens * .3) && e > .3 && D.t - lastBeat > .2) { lastBeat = D.t; D.beat = 1; if (rings.length < 4) rings.push({ r: 0, a: 1 }); }
+    if (e > bassAvg * (1.34 - S.beatSens * .3) && e > .3 && D.t - lastBeat > .2) { lastBeat = D.t; D.beat = 1; if (rings.length < 4) rings.push({ r: 0, a: 1 }); const ang = Math.random() * Math.PI * 2; shakeDir[0] = Math.cos(ang); shakeDir[1] = Math.sin(ang); shakeSpin = Math.random() < .5 ? -1 : 1; }
   } else { const k = Math.exp(-dt * 3); D.bass = D.bass * k + idle * .08 * (1 + Math.sin(tt * 1.4)) * (1 - k); D.mid *= k; D.vocal = D.vocal * k + idle * .06 * (1 - k); D.high *= k; }
   D.beat *= Math.exp(-dt * 6.5);
   D.energy = D.bass * .42 + D.mid * .25 + D.vocal * .2 + D.high * .13;
@@ -182,15 +186,27 @@ function frame(now) {
   if (S.spinCover && playing) coverRot += dt * .35;
   if (engine) {
     for (let i = 0; i < 4; i++) { ringsU[i] = rings[i] ? rings[i].r : 0; ringA[i] = rings[i] ? rings[i].a * .7 : 0; }
-    let sx = 0, sy = 0;
-    if (S.shake && !reduced && D.beat > .02) { const a = D.beat * S.shakeAmt * .012; sx = (Math.random() - .5) * a; sy = (Math.random() - .5) * a; }
+    let sx = 0, sy = 0, twistKick = 0;
+    if (S.shake && !reduced && D.beat > .02) {
+      // a punchy camera hit: thrown in one direction, then a damped wobble back
+      const k = D.beat * S.shakeAmt, wob = Math.cos((1 - D.beat) * 18);
+      sx = shakeDir[0] * k * .028 * wob + (Math.random() - .5) * k * .004; sy = shakeDir[1] * k * .028 * wob + (Math.random() - .5) * k * .004;
+      twistKick = shakeSpin * k * S.shakeRot * .012 * wob;
+    }
+    // "lifeless until the music hits": wake on bass and/or vocals
+    const src = S.moodSource === 'bass' ? D.bass : S.moodSource === 'vocal' ? D.vocal : Math.max(D.bass, D.vocal * 1.1);
+    const thr = .65 - S.moodTrigger * .55, target = (playing || streamViz) ? clamp((src - thr) / .3, 0, 1) : 0;
+    life += (target - life) * (1 - Math.exp(-dt * (target > life ? 2 + S.moodSpeed * 10 : .25 + S.moodSpeed * 2.5)));
     const lyrBottom = S.lyrOn && lyr.data && S.lyrPos === 'bottom';
-    F.center[0] = sx; F.center[1] = sy + (lyrBottom ? .1 : 0); F.scaleV = lyrBottom ? 1.18 : 1;
+    F.scaleV = lyrBottom ? 1.18 : 1; F.center[0] = sx + viewOff[0] * F.scaleV; F.center[1] = sy + (lyrBottom ? .1 : 0) + viewOff[1] * F.scaleV;
     F.t = D.t; F.bass = D.bass; F.mid = D.mid; F.vocal = D.vocal; F.high = D.high; F.beat = D.beat; F.energy = D.energy;
     F.rot = rot; F.flow = flow; F.coverRot = coverRot; F.mode = S.mode; F.bars = S.bars; F.mirror = S.mirror; F.showCover = S.showCover; F.sens = S.sensitivity;
-    F.colors = colors(D.t); F.trail = S.trail * .97; F.warpZoom = S.warpZoom + (S.zoom ? D.bass * .004 + D.beat * .006 : 0); F.twist = S.twist;
-    F.glow = S.glow * (1 + D.beat * S.flash * .8); F.vignette = S.vignette; F.grain = S.grain; F.ca = S.ca; F.backdrop = S.backdrop;
-    F.dust = S.dust; F.particleAmt = S.particleAmt; F.pxScale = Math.min(2, devicePixelRatio || 1) * S.quality; F.light = document.documentElement.dataset.theme === 'light';
+    F.colors = colors(D.t); F.trail = S.trail * .97; F.warpZoom = S.warpZoom + (S.zoom ? D.bass * .004 + D.beat * .006 : 0); F.twist = S.twist + twistKick;
+    F.glow = S.glow * (1 + D.beat * S.flash * .5); F.vignette = S.vignette; F.grain = S.grain; F.ca = S.ca; F.backdrop = S.backdrop;
+    F.dust = S.dust; F.particleAmt = S.particleAmt; F.dustSize = S.dustSize; F.dustBeat = S.dustBeat; F.dustGlow = S.dustGlow;
+    F.punch = S.zoom ? S.punch * (D.beat * .075 + D.bass * .018) : 0;
+    F.flashAmt = S.flash * D.beat * D.beat * .32; F.flashCol = S.flashCol === 'white' ? [1, 1, 1] : (F.colors[2] || [1, 1, 1]);
+    F.exposure = S.exposure; F.maxBright = S.maxBright; F.glowThr = S.glowThr; F.life = life; F.mood = S.mood; F.moodDepth = S.moodDepth; F.pxScale = Math.min(2, devicePixelRatio || 1) * S.quality; F.light = document.documentElement.dataset.theme === 'light';
     engine.render(F);
   }
   const b = D.bass;
@@ -207,6 +223,24 @@ function frame(now) {
   if (eqVisible && playing && ++eqTick % 3 === 0) drawEq();
   if (now - lastUi > 250) { lastUi = now; tCur.textContent = fmtTime(seeking ? seekFrac * audio.duration : audio.currentTime); tDur.textContent = cur && cur.remote && !isFinite(audio.duration) ? '∞' : fmtTime(audio.duration); }
 }
+
+/* ================= glass panels ================= */
+const viewOff = [0, 0];
+function measureView() {
+  if (!S.glass || document.body.classList.contains('stage')) { viewOff[0] = viewOff[1] = 0; return; }
+  const c = stageEl.getBoundingClientRect(), u = $('#stageUi').getBoundingClientRect(); if (!c.height) return;
+  viewOff[0] = ((u.left + u.width / 2) - (c.left + c.width / 2)) / c.height;
+  viewOff[1] = -((u.top + u.height / 2) - (c.top + c.height / 2)) / c.height;
+}
+function applyGlass() {
+  document.body.classList.toggle('glass', !!S.glass);
+  const st = document.documentElement.style; st.setProperty('--glass-blur', S.glassBlur + 'px'); st.setProperty('--glass-a', String(1 - S.glassAlpha));
+  $('#btnGlass').classList.toggle('on', !!S.glass);
+  requestAnimationFrame(() => { setDockH(); measureView(); });
+}
+function setDockH() { document.documentElement.style.setProperty('--dock-h', $('.dock').offsetHeight + 'px'); }
+new ResizeObserver(() => { setDockH(); measureView(); }).observe($('#stageUi'));
+new ResizeObserver(() => { setDockH(); measureView(); }).observe($('.dock'));
 
 /* ================= library ================= */
 let tracks = [], byPath = new Map(), list = [], Q = [], qi = -1, cur = null, hist = [], filter = null, query = '';
@@ -692,7 +726,12 @@ const PLAY_SCHEMA = () => [
   ['fx', 'tabFx'],
   ['glow', 'sGlow', 'range', 0, 1, .05], ['flash', 'sFlash', 'range', 0, 1.5, .05], ['trail', 'sTrail', 'range', 0, .95, .05], ['warpZoom', 'sWarp', 'range', 0, .03, .001], ['twist', 'sTwist', 'range', -.02, .02, .001],
   ['zoom', 'sZoom', 'toggle'], ['shake', 'sShake', 'toggle'], ['shakeAmt', 'sShakeAmt', 'range', 0, 1.5, .05], ['ca', 'sCa', 'range', 0, 1.5, .05], ['particleAmt', 'sParticles', 'range', .1, 1, .05],
-  ['dust', 'sDust', 'toggle'], ['backdrop', 'sBackdrop', 'range', 0, 1, .05], ['vignette', 'sVignette', 'range', 0, 1, .05], ['grain', 'sGrain', 'range', 0, 1, .05],
+  ['backdrop', 'sBackdrop', 'range', 0, 1, .05], ['vignette', 'sVignette', 'range', 0, 1, .05], ['grain', 'sGrain', 'range', 0, 1, .05],
+  ['@sec', 'secBeat'], ['punch', 'sPunch', 'range', 0, 1.5, .05], ['flashCol', 'sFlashCol', 'chips', [opt('accent', key('fcAccent')), opt('white', key('fcWhite'))]], ['shakeRot', 'sShakeRot', 'range', 0, 1.5, .05],
+  ['@sec', 'secDust'], ['dust', 'sDust', 'toggle'], ['dustSize', 'sDustSize', 'range', .4, 3, .05], ['dustBeat', 'sDustBeat', 'range', 0, 1.5, .05], ['dustGlow', 'sDustGlow', 'range', 0, 1.5, .05],
+  ['@sec', 'secMood'], ['@note', 'moodNote'], ['mood', 'sMood', 'toggle'], ['moodDepth', 'sMoodDepth', 'range', .1, 1, .05], ['moodTrigger', 'sMoodTrigger', 'range', 0, 1, .05], ['moodSpeed', 'sMoodSpeed', 'range', 0, 1, .05],
+  ['moodSource', 'sMoodSource', 'chips', [opt('both', key('msBoth')), opt('bass', key('msBass')), opt('vocal', key('msVocal'))]],
+  ['@sec', 'secLight'], ['exposure', 'sExposure', 'range', .3, 1.5, .05], ['glowThr', 'sGlowThr', 'range', .05, .8, .01], ['maxBright', 'sMaxBright', 'range', .35, 1, .01], ['@note', 'lightNote'],
   ['lyrics', 'tabLyrics'],
   ['lyrOn', 'sLyrOn', 'toggle'], ['lyrStyle', 'sLyrStyle', 'chips', LyricsView.styles.map(s => opt(s[0], literal(s[1], s[2])))],
   ['lyrPos', 'sLyrPos', 'chips', [opt('bottom', key('pBottom')), opt('center', key('pCenter')), opt('top', key('pTop'))]],
@@ -713,7 +752,7 @@ const APP_SCHEMA = () => [
   ['general', 'tabGeneral'],
   ['lang', 'sLang', 'chips', [opt('fa', literal('فارسی', 'فارسی')), opt('en', literal('English', 'English'))]],
   ['@closeAction'], ['@autostart'], ['welcome', 'sWelcome', 'toggle'], ['outro', 'sOutro', 'toggle'], ['mediaKeys', 'sMediaKeys', 'toggle'], ['notify', 'sNotify', 'toggle'], ['uiAnim', 'sAnim', 'toggle'],
-  ['themes', 'tabThemes'], ['@themes'],
+  ['themes', 'tabThemes'], ['@sec', 'secGlass'], ['glass', 'sGlass', 'toggle'], ['glassBlur', 'sGlassBlur', 'range', 0, 40, 1], ['glassAlpha', 'sGlassAlpha', 'range', 0, .9, .05], ['@note', 'glassNote'], ['@themes'],
   ['library', 'tabLibrary'], ['@lib'], ['hideShort', 'sHideShort', 'toggle'],
   ['ai', 'tabAi'], ['@ai'], ['aiAuto', 'sAiAuto', 'toggle'], ['aiPrefetch', 'sAiPrefetch', 'toggle'], ['aiVad', 'sAiVad', 'toggle'],
   ['aiLang', 'sAiLang', 'chips', [opt('auto', key('langAuto')), opt('fa', key('langFa')), opt('en', key('langEn')), opt('ru', key('langRu'))]],
@@ -722,7 +761,7 @@ const APP_SCHEMA = () => [
   ['keys', 'tabKeys'], ['@keys'],
   ['about', 'tabAbout'], ['@about']
 ];
-const PCT = new Set(['glow', 'flash', 'trail', 'shakeAmt', 'ca', 'particleAmt', 'backdrop', 'vignette', 'grain', 'beatSens', 'rotate', 'quality', 'smoothing', 'reverb', 'revDamp', 'width']);
+const PCT = new Set(['punch', 'shakeRot', 'dustSize', 'dustBeat', 'dustGlow', 'moodDepth', 'moodTrigger', 'moodSpeed', 'exposure', 'glowThr', 'maxBright', 'glassAlpha', 'glow', 'flash', 'trail', 'shakeAmt', 'ca', 'particleAmt', 'backdrop', 'vignette', 'grain', 'beatSens', 'rotate', 'quality', 'smoothing', 'reverb', 'revDamp', 'width']);
 function fmtVal(k, v) {
   const pc = L() === 'fa' ? '٪' : '%';
   if (k === 'speed' || k === 'sensitivity') return fmtN(+v.toFixed(2)) + '×';
@@ -733,6 +772,7 @@ function fmtVal(k, v) {
   if (k === 'fadeIn' || k === 'fadeOut') return v ? fmtN(v) + ' ' + t('seconds') : t('off');
   if (k === 'revSize') return fmtN(+v.toFixed(1)) + ' ' + t('seconds');
   if (k === 'bass') return '+' + fmtN(v) + ' dB';
+  if (k === 'glassBlur') return fmtN(v) + 'px';
   if (k === 'eqPre') return (v > 0 ? '+' : '') + fmtN(v) + ' dB';
   if (k === 'd8Speed') return fmtN(+v.toFixed(2)) + ' Hz';
   if (k === 'balance') return v === 0 ? fmtN(0) : (v < 0 ? t('left') : t('right')) + ' ' + fmtN(Math.round(Math.abs(v) * 100)) + pc;
@@ -889,7 +929,7 @@ function applyKey(k) {
     case 'lyrStyle': case 'lyrDir': case 'lyrPos': case 'lyrSize': case 'lyrGlow': case 'lyrColor': lyrOpts(); break;
     case 'lyrFontEn': case 'lyrFontFa': case 'lyrWeight': applyFonts(); break;
     case 'minDur': case 'hideShort': renderSide(); break;
-    case 'sideOpen': document.body.classList.toggle('side-closed', !S.sideOpen); $('#btnSide').classList.toggle('on', S.sideOpen); setTimeout(renderModes, 450); break;
+    case 'sideOpen': document.body.classList.toggle('side-closed', !S.sideOpen); $('#btnSide').classList.toggle('on', S.sideOpen); setTimeout(() => { renderModes(); measureView(); }, 480); break;
     case 'autoCycle': setupCycle(); break;
     case 'mediaKeys': setMediaKeys(); break;
     case 'uiAnim': document.body.classList.toggle('no-anim', !S.uiAnim); break;
@@ -902,6 +942,7 @@ function applyKey(k) {
     case 'balance': fx.setBalance(S.balance); break;
     case 'width': case 'mono': fx.setWidth(S.mono ? 0 : S.width); break;
     case 'normalize': fx.setNormalize(S.normalize); break;
+    case 'glass': case 'glassBlur': case 'glassAlpha': applyGlass(); break;
   }
 }
 function applyAll() { Object.keys(DEFAULTS).filter(k => k !== 'lang').forEach(applyKey); applySound(); applyVolume(); applyTransport(); }
@@ -1073,7 +1114,7 @@ function renderPresets() {
     return `<button class="preset" data-preset="${i}"><i style="background:${presetGrad(p.s)}"><span class="pm">${m ? esc(L() === 'fa' ? m[1] : m[2]) : t('perfPreset')}</span></i><b>${esc(nm(p.n))}</b><span>${ly ? esc(L() === 'fa' ? ly[1] : ly[2]) : ''}</span>${p.mine ? `<em data-delp="${mi}">×</em>` : ''}</button>`;
   }).join('') || `<p class="muted">${t('pNone')}</p>`;
 }
-const PRESET_KEYS = ['mode', 'palette', 'bars', 'sensitivity', 'beatSens', 'rotate', 'mirror', 'showCover', 'spinCover', 'glow', 'flash', 'trail', 'warpZoom', 'twist', 'zoom', 'shake', 'shakeAmt', 'ca', 'particleAmt', 'dust', 'backdrop', 'vignette', 'grain', 'lyrStyle', 'lyrPos', 'lyrDir', 'lyrSize', 'lyrColor'];
+const PRESET_KEYS = ['punch', 'flashCol', 'shakeRot', 'dustSize', 'dustBeat', 'dustGlow', 'mood', 'moodDepth', 'moodTrigger', 'moodSpeed', 'moodSource', 'exposure', 'glowThr', 'maxBright', 'mode', 'palette', 'bars', 'sensitivity', 'beatSens', 'rotate', 'mirror', 'showCover', 'spinCover', 'glow', 'flash', 'trail', 'warpZoom', 'twist', 'zoom', 'shake', 'shakeAmt', 'ca', 'particleAmt', 'dust', 'backdrop', 'vignette', 'grain', 'lyrStyle', 'lyrPos', 'lyrDir', 'lyrSize', 'lyrColor'];
 function applyPreset(p) { Object.entries(p).forEach(([k, v]) => { if (k === 'mode') setMode(v, true); else { S[k] = Array.isArray(v) ? v.slice() : v; applyKey(k); } }); persist(); syncControls(); }
 function randomPreset() { const arr = allPresets().filter(p => p.cat !== 'perf'); const p = arr[(Math.random() * arr.length) | 0]; applyPreset(p.s); toast(t('pApplied', { n: nm(p.n) }), 1500); }
 function savePreset() {
@@ -1189,6 +1230,7 @@ $('#btnStage').addEventListener('click', toggleStage);
 $('#btnExitStage').addEventListener('click', toggleStage);
 $('#btnFull').addEventListener('click', () => api.win.fullscreen());
 $('#btnLink').addEventListener('click', linkDialog);
+$('#btnGlass').addEventListener('click', () => { set('glass', !S.glass); syncControls(); toast(S.glass ? t('glassOn') : t('glassOff'), 1200); });
 $('#btnTheme').addEventListener('click', e => {
   const th = allThemes(), i = th.findIndex(x => x.id === S.theme), n = th[(i + 1) % th.length];
   const go = () => { set('theme', n.id); renderThemes(); };
@@ -1207,7 +1249,7 @@ function toggleStage() {
   const on = document.body.classList.toggle('stage');
   $('#btnStage').classList.toggle('on', on);
   if (on) { closeDrawers(); toast(t('stageOn')); }
-  setTimeout(renderModes, 450); scheduleIdle();
+  setTimeout(() => { renderModes(); measureView(); }, 450); scheduleIdle();
 }
 let idleT = 0;
 function scheduleIdle() { document.body.classList.remove('idle'); clearTimeout(idleT); if (!document.body.classList.contains('stage') || !S.autoHide) return; idleT = setTimeout(() => document.body.classList.add('idle'), 2000); }

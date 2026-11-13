@@ -4,7 +4,9 @@
 const MODES = [
   ['halo', 'هاله', 'Halo'], ['spectrum', 'طیف', 'Spectrum'], ['nebula', 'سحابی', 'Nebula'], ['liquid', 'مایع', 'Liquid'], ['tunnel', 'تونل', 'Tunnel'],
   ['orbit', 'مدار', 'Orbit'], ['scope', 'نوسان', 'Scope'], ['skyline', 'برج‌ها', 'Skyline'], ['kaleido', 'کالیدوسکوپ', 'Kaleido'], ['aurora', 'شفق', 'Aurora'],
-  ['warp', 'سفر نور', 'Warp'], ['ripple', 'موج آب', 'Ripple'], ['spiral', 'کهکشان', 'Galaxy'], ['horizon', 'افق', 'Horizon'], ['blackhole', 'سیاه‌چاله', 'Black hole'], ['prism', 'منشور', 'Prism']
+  ['warp', 'سفر نور', 'Warp'], ['ripple', 'موج آب', 'Ripple'], ['spiral', 'کهکشان', 'Galaxy'], ['horizon', 'افق', 'Horizon'], ['blackhole', 'سیاه‌چاله', 'Black hole'], ['prism', 'منشور', 'Prism'],
+  ['pulsar', 'پالسار', 'Pulsar'], ['hexgrid', 'کندو', 'Hive'], ['vortex', 'گرداب', 'Vortex'], ['terrain', 'کوهستان', 'Terrain'], ['radar', 'رادار', 'Radar'], ['lava', 'لاوا', 'Lava lamp'],
+  ['mandala', 'ماندالا', 'Mandala'], ['plasma', 'پلاسما', 'Plasma'], ['helix', 'مارپیچ DNA', 'DNA helix'], ['rain', 'باران کد', 'Code rain'], ['voronoi', 'سلول‌ها', 'Cells'], ['fractal', 'فراکتال', 'Fractal']
 ];
 // four stops, low -> high. 'theme', 'accent', 'duo', 'rainbow', 'cover' are computed at runtime.
 const PALETTES = [

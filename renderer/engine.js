@@ -257,8 +257,8 @@ horizon: `vec3 scene(vec2 p, vec2 q){
   if (q.y > hz) {
     float t = clamp((p.y - sc.y + sr)/(2.*sr), 0., 1.);
     float stripes = step(.5, fract((p.y - sc.y)*38. - uTime*.5)) + step(.55, t);
-    col += mix(pal(.1), pal(1.), t)*smoothstep(sr+px, sr-px, sd)*min(stripes, 1.)*1.1;
-    col += pal(.7)*exp(-max(sd - sr, 0.)*9.)*.35*(1. + uBass);
+    col += mix(pal(.1), pal(1.), t)*smoothstep(sr+px, sr-px, sd)*min(stripes, 1.)*(.55 + uBass*.35);
+    col += pal(.7)*exp(-max(sd - sr, 0.)*11.)*.16*(.4 + uBass*1.2);
     float mh = spec(mfold(q.x)*.7)*.2 + .015 + .02*noise(vec2(q.x*12., 1.));
     float m = smoothstep(px, -px, q.y - hz - mh);
     col = mix(col, pal(.15)*.25, m);
@@ -271,7 +271,7 @@ horizon: `vec3 scene(vec2 p, vec2 q){
     float lx = smoothstep(.5 - .02 - .004*z, .5, fx);
     float fade = smoothstep(0., .25, dz);
     col += pal(.55)*max(lz, lx)*fade*(.45 + uBass*.7)*smoothstep(9., 1., z);
-    col += pal(.8)*exp(-dz*40.)*.35;
+    col += pal(.8)*exp(-dz*40.)*.18*(.5 + uBass);
   }
   return col;
 }`,
@@ -310,13 +310,154 @@ prism: `vec3 scene(vec2 p, vec2 q){
   col *= smoothstep(1.25, .1, r);
   col += pal(1.)*exp(-r*9.)*(.35 + uBass);
   return col;
+}`,
+pulsar: `vec3 scene(vec2 p, vec2 q){
+  float r = length(p), a = atan(p.y, p.x);
+  float n = uMirror>.5 ? 24. : 18.;
+  float f = fract((a + uRot)/TAU + 1.), fm = mfold(f);
+  float id = floor(fm*n), v = spec((id + .5)/n);
+  float ca = fract(f*n) - .5;
+  float beam = exp(-abs(ca)*(10. - v*7.));
+  float len = .22 + v*.85 + uBeat*.08;
+  vec3 col = pal(fm)*beam*smoothstep(len, 0., r)*smoothstep(.04, .12, r)*(.25 + v*1.5);
+  col += pal(1.)*exp(-r*13.)*(.45 + uBass*1.3);
+  col += ringsAt(r, .07, 1.5/uRes.y);
+  return col;
+}`,
+hexgrid: `vec3 scene(vec2 p, vec2 q){
+  vec2 sz = vec2(1., 1.7320508), z = rot(uRot*.15)*p*7.;
+  vec2 a = mod(z, sz) - sz*.5, b = mod(z - sz*.5, sz) - sz*.5;
+  vec2 g = dot(a, a) < dot(b, b) ? a : b;
+  vec2 id = floor((z - g)*10.)/10.;
+  vec2 ag = abs(g);
+  float hd = max(dot(ag, vec2(.5, .8660254)), ag.x);
+  float r = length(z - g)/7., h = hash(id + 3.1);
+  float v = spec(clamp(r*1.2, 0., 1.));
+  float fill = smoothstep(.47, .38, hd)*v*(.25 + .75*h);
+  float edge = smoothstep(.03, 0., abs(hd - .47));
+  vec3 col = pal(fract(r + h*.25))*fill*1.3 + pal(.5)*edge*(.08 + uBass*.35);
+  col += pal(1.)*smoothstep(.38, .3, hd)*step(.95 - uBeat*.2, h)*.8;
+  return col*smoothstep(1.35, .2, length(p));
+}`,
+vortex: `vec3 scene(vec2 p, vec2 q){
+  float r = length(p) + .001, a = atan(p.y, p.x);
+  float arms = uMirror>.5 ? 8. : 6.;
+  float s = sin((a + log(r)*2.5 + uFlow*1.2)*arms)*.5 + .5;
+  float v = spec(clamp(1. - r*1.2, 0., 1.));
+  float z = fract(log(r)*1.6 - uFlow*.8);
+  float rings = smoothstep(.12, 0., abs(z - .5) - .36);
+  vec3 col = pal(fract(r*1.2 + uFlow*.05))*pow(s, 3.)*(.2 + v*1.6)*smoothstep(1.2, .05, r);
+  col += pal(.8)*rings*.22*(1. + uBass)*smoothstep(1., .1, r);
+  col += pal(1.)*exp(-r*10.)*(.45 + uBass);
+  return col;
+}`,
+terrain: `vec3 scene(vec2 p, vec2 q){
+  float hz = .55, asp = uRes.x/uRes.y; vec3 col = vec3(0);
+  if (q.y < hz) {
+    float dz = hz - q.y + .002, z = .25/dz, x = (q.x - .5)*asp*z;
+    float row = z + uFlow*1.2;
+    float v = spec(clamp(abs(x)*.22, 0., 1.));
+    float gr = abs(fract(row - .5) - .5)/max(fwidth(row), 1e-4), gx = abs(fract(x*.8 - .5) - .5)/max(fwidth(x*.8), 1e-4);
+    float line = 1. - min(min(gr, gx)*.7, 1.);
+    float fade = smoothstep(0., .3, dz)*smoothstep(14., 2., z);
+    col += pal(clamp(v + .15, 0., 1.))*line*fade*(.18 + v*1.2);
+  } else {
+    float m = spec(mfold(q.x))*.3 + .02;
+    float e = smoothstep(2.5/uRes.y, 0., abs(q.y - hz - m));
+    col += pal(.25)*step(q.y, hz + m)*.07 + pal(.9)*e*(.5 + uBass);
+    vec2 g = floor(gl_FragCoord.xy/3.);
+    col += vec3(step(.997, hash(g))*(.4 + .6*sin(uTime*2. + hash(g + 5.)*30.)))*smoothstep(hz + m, 1., q.y);
+  }
+  return col;
+}`,
+radar: `vec3 scene(vec2 p, vec2 q){
+  float px = 1.5/uRes.y, r = length(p), a = atan(p.y, p.x);
+  float sweep = fract((a - uTime*(.5 + uRot*.6))/TAU + 1.);
+  float trail = pow(1. - sweep, 7.)*smoothstep(.6, .0, r);
+  vec3 col = pal(.6)*trail*.45*(1. + uEnergy);
+  for (int i = 1; i < 6; i++) col += pal(float(i)/5.)*smoothstep(px*1.5, 0., abs(r - float(i)*.1))*.18;
+  col += pal(.4)*(smoothstep(px, 0., abs(p.x)) + smoothstep(px, 0., abs(p.y)))*.1*step(r, .5);
+  vec2 g = floor(p*14.), c = (g + .5)/14.; float h = hash(g);
+  float sb = spec(h), blip = step(.86, h)*step(length(c), .5);
+  col += pal(h)*blip*smoothstep(.012 + sb*.01, 0., length(p - c))*(.25 + sb*1.5)*(.3 + trail*2.5);
+  col += pal(.9)*smoothstep(px*2., 0., abs(r - (.52 + wave(fract(a/TAU + 1.))*.03*(.3 + uVocal))))*.6;
+  return col;
+}`,
+lava: `vec3 scene(vec2 p, vec2 q){
+  float f = 0.;
+  for (int i = 0; i < 7; i++) {
+    float fi = float(i);
+    vec2 c = vec2(sin(uFlow*.25*(1. + fi*.13) + fi*1.7)*.55, cos(uFlow*.21*(1. + fi*.11) + fi*2.3)*.33);
+    float rad = .06 + spec(fi/7.)*.12 + uBass*.03;
+    f += rad*rad/max(dot(p - c, p - c), 1e-4);
+  }
+  float m = smoothstep(.9, 1.15, f), edge = smoothstep(.25, 0., abs(f - 1.));
+  return pal(clamp(f*.18, 0., 1.))*m*(.07 + uEnergy*.3) + pal(.9)*edge*(.25 + uBass*.7);
+}`,
+mandala: `vec3 scene(vec2 p, vec2 q){
+  float r = length(p), a = atan(p.y, p.x) + uRot*.4, n = uMirror>.5 ? 12. : 8.;
+  float k = cos(a*n)*.5 + .5, k2 = cos(a*n*2. + uFlow)*.5 + .5;
+  float v = spec(clamp(r*1.3, 0., 1.));
+  float pet = smoothstep(.018, 0., abs(r - (.14 + k*.17*(1. + v)))) + smoothstep(.016, 0., abs(r - (.32 + k2*.1*(1. + uVocal))))*.7 + smoothstep(.012, 0., abs(r - (.48 + k*.05 + uBass*.04))))*.5;
+  vec3 col = pal(fract(r*1.5 + k*.2))*pet*(.55 + v) + pal(.9)*exp(-r*12.)*(.4 + uBass);
+  col += pal(.5)*pow(k2, 8.)*smoothstep(.6, .1, r)*.18*(1. + uEnergy);
+  return col;
+}`,
+plasma: `vec3 scene(vec2 p, vec2 q){
+  vec2 z = p*3.; float t = uFlow*.6;
+  float v1 = sin(z.x*1.3 + t) + sin(z.y*1.7 - t*1.3) + sin((z.x + z.y)*1.1 + t*.7) + sin(length(z)*2.2 - t*1.6);
+  float s = spec(fract(v1*.1 + .5));
+  float m = sin(v1*PI*(.8 + uBass*.6))*.5 + .5;
+  return pal(fract(v1*.15 + uFlow*.03))*(.06 + pow(m, 3.)*(.45 + s*1.4));
+}`,
+helix: `vec3 scene(vec2 p, vec2 q){
+  float asp = uRes.x/uRes.y, N = 48.; vec3 col = vec3(0);
+  float cell = floor(q.x*N), cx = (cell + .5)/N, v = spec(cx);
+  float amp = .17*(1. + uBass*.4);
+  for (int k = 0; k < 2; k++) {
+    float ph = cx*12. + uFlow*1.5 + float(k)*PI;
+    vec2 c = vec2(cx, .5 + sin(ph)*amp);
+    float depth = cos(ph)*.5 + .5;
+    vec2 d = (q - c)*vec2(asp, 1.); float rr = .005 + v*.011*(.5 + depth);
+    col += pal(fract(cx + float(k)*.5))*(smoothstep(rr, rr*.4, length(d)) + exp(-length(d)/rr*1.2)*.3)*(.35 + .65*depth);
+  }
+  float y1 = .5 + sin(cx*12. + uFlow*1.5)*amp, y2 = .5 + sin(cx*12. + uFlow*1.5 + PI)*amp;
+  if (mod(cell, 3.) < .5) col += pal(.5)*smoothstep(.0022, 0., abs(q.x - cx)*asp)*step(min(y1, y2), q.y)*step(q.y, max(y1, y2))*(.1 + v*.6);
+  return col;
+}`,
+rain: `vec3 scene(vec2 p, vec2 q){
+  float cols = uMirror>.5 ? 90. : 70., cx = floor(q.x*cols), h = hash(vec2(cx, 1.)), speed = .3 + h*.9;
+  float v = spec(mfold(fract(cx/cols)));
+  float head = fract(-uFlow*speed*.35 - h), dy = fract(q.y - head);
+  float trail = exp(-dy*(7. - v*5.)), lx = fract(q.x*cols);
+  float mask = smoothstep(0., .2, lx)*smoothstep(1., .8, lx)*step(.3, fract(q.y*cols*.55));
+  return pal(.35 + v*.65)*trail*mask*(.15 + v*1.6) + pal(1.)*smoothstep(.012, 0., dy)*mask*(.4 + v);
+}`,
+voronoi: `vec3 scene(vec2 p, vec2 q){
+  vec2 z = p*5., i = floor(z), f = fract(z), mid = vec2(0); float md = 8., md2 = 8.;
+  for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+    vec2 g = vec2(float(x), float(y)), o = vec2(hash(i + g), hash(i + g + 19.));
+    o = .5 + .4*sin(uFlow*.6 + 6.2831*o);
+    vec2 rr = g + o - f; float d = dot(rr, rr);
+    if (d < md) { md2 = md; md = d; mid = i + g; } else if (d < md2) md2 = d;
+  }
+  float edge = sqrt(md2) - sqrt(md), h = hash(mid), v = spec(fract(h*.7 + length(p)*.3));
+  vec3 col = pal(h)*(.04 + v*.9*smoothstep(0., .6, 1. - sqrt(md))) + pal(.9)*smoothstep(.06 + uBass*.04, 0., edge)*(.25 + v);
+  return col*smoothstep(1.4, .2, length(p));
+}`,
+fractal: `vec3 scene(vec2 p, vec2 q){
+  vec2 z = p*1.6; float acc = 0.;
+  vec2 k = vec2(.6 + uBass*.12, .45 + sin(uFlow*.2)*.08);
+  for (int i = 0; i < 10; i++) { z = abs(z)/max(dot(z, z), 1e-3) - k; z = rot(uRot*.2)*z; acc += exp(-length(z)*3.); }
+  float v = spec(clamp(length(p), 0., 1.));
+  return pal(fract(acc*.08 + uFlow*.03))*acc*.055*(.35 + v*1.2 + uEnergy);
 }`
 };
 
 const PART_VS = `#version 300 es
 precision highp float;
-uniform vec2 uRes, uCenter; uniform float uFlow, uTime, uBass, uHigh, uKind, uScale;
-out float vA; out float vC;
+uniform vec2 uRes, uCenter; uniform float uFlow, uTime, uBass, uHigh, uKind, uScale, uBeat, uDustSize, uDustBeat, uDustGlow;
+out float vA; out float vC; out float vG;
 float h(float n){ return fract(sin(n)*43758.5453); }
 void main(){
   float id = float(gl_VertexID);
@@ -337,9 +478,14 @@ void main(){
     float asp = uRes.x/uRes.y;
     pos = vec2((s1 - .5)*asp*1.05, fract(s2 + uTime*.008*(.4 + s3) + uFlow*.015) * 1.2 - .6) - uCenter;
     pos.x += sin(uTime*.3 + id)*.01;
-    size = 1. + s4*2.2*(1. + uHigh);
-    a = .28 + .2*s3;
+    float kick = uBeat*uDustBeat, thump = uBass*uDustBeat;
+    pos *= 1. + kick*.09 + thump*.035;
+    float g = uDustGlow*(.35 + kick*1.4);
+    size = (1. + s4*2.2*(1. + uHigh))*uDustSize*(1. + thump*1.1 + kick*2.2)*(1. + g*1.6);
+    a = (.28 + .2*s3)*(1. + kick*1.6);
+    vG = g;
   }
+  if (uKind < 1.5) vG = 0.;
   vC = s2; vA = a;
   vec2 ndc = (pos + uCenter)*vec2(2.*uRes.y/uRes.x, 2.);
   gl_Position = vec4(ndc, 0., 1.);
@@ -348,9 +494,15 @@ void main(){
 const PART_FS = `#version 300 es
 precision highp float;
 uniform vec3 uC0, uC1, uC2, uC3;
-in float vA; in float vC; out vec4 o;
+in float vA; in float vC; in float vG; out vec4 o;
 vec3 pal(float t){ t = clamp(t,0.,1.)*3.; return t<1. ? mix(uC0,uC1,t) : t<2. ? mix(uC1,uC2,t-1.) : mix(uC2,uC3,t-2.); }
-void main(){ float d = length(gl_PointCoord - .5); float a = smoothstep(.5, 0., d)*vA; o = vec4(pal(vC)*a, a); }`;
+void main(){
+  float d = length(gl_PointCoord - .5)*2.;
+  float core = vG > 0. ? smoothstep(1./(1. + vG*1.6), 0., d) : smoothstep(1., 0., d);
+  float halo = exp(-d*d*5.)*vG*.75;
+  float a = (core + halo)*vA;
+  o = vec4(mix(pal(vC), vec3(1.), core*vG*.35)*a, a);
+}`;
 
 const ACC_FS = `#version 300 es
 precision highp float;
@@ -381,20 +533,28 @@ void main(){ vec2 uv = gl_FragCoord.xy/uRes, d = uDir/uRes;
 const FINAL_FS = `#version 300 es
 precision highp float;
 uniform sampler2D uAcc, uBloom, uBack; uniform vec2 uRes;
-uniform float uGlow, uLight, uVig, uGrain, uBeat, uCA, uTime, uBackA, uHasBack;
-uniform vec3 uBg, uBgL;
+uniform float uGlow, uLight, uVig, uGrain, uBeat, uCA, uTime, uBackA, uHasBack, uPunch, uFlash, uExposure, uMaxB, uLife, uMood;
+uniform vec3 uBg, uBgL, uFlashC; uniform vec2 uZC;
 out vec4 o;
 float hash(vec2 p){ p = fract(p*vec2(123.34, 456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }
 void main(){
-  vec2 uv = gl_FragCoord.xy/uRes;
-  vec2 d = (uv - .5)*uCA*uBeat*.014;
+  vec2 uv0 = gl_FragCoord.xy/uRes;
+  vec2 zc = vec2(.5) + uZC;
+  vec2 uv = zc + (uv0 - zc)*(1. - uPunch);
+  vec2 d = (uv - zc)*uCA*uBeat*.014;
   vec3 c = vec3(texture(uAcc, uv + d).r, texture(uAcc, uv).g, texture(uAcc, uv - d).b);
   c += texture(uBloom, uv).rgb*uGlow*1.7;
-  c = 1. - exp(-c*1.2);
-  vec2 vv = (uv - .5)*vec2(uRes.x/uRes.y, 1.);
+  c = 1. - exp(-c*1.2*uExposure);
+  float mx = max(c.r, max(c.g, c.b)); if (mx > uMaxB) c *= uMaxB/mx;
+  float dead = uMood*(1. - uLife);
+  float gl = dot(c, vec3(.299, .587, .114));
+  c = mix(c, vec3(gl)*.55, dead)*(1. - dead*.6);
+  vec2 vv = (uv0 - .5)*vec2(uRes.x/uRes.y, 1.);
+  c += uFlashC*uFlash*(.55 + .45*smoothstep(1.2, 0., length(vv)));
   float vig = mix(1., smoothstep(1.15, .3, length(vv)), uVig);
   vec3 back = uHasBack > .5 ? texture(uBack, uv).rgb : vec3(0.);
   float gr = (hash(gl_FragCoord.xy + fract(uTime)*91.7) - .5)*uGrain*.07;
+  back *= 1. - dead*.85;
   vec3 col;
   if (uLight < .5) {
     col = (uBg + back*uBackA*.55 + c)*vig + gr;
@@ -532,7 +692,7 @@ class Engine {
       gl.useProgram(P.p); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
       gl.uniform2f(pu.uRes, W, H); gl.uniform2f(pu.uCenter, F.center[0], F.center[1]);
       gl.uniform1f(pu.uFlow, F.flow); gl.uniform1f(pu.uTime, F.t); gl.uniform1f(pu.uBass, F.bass); gl.uniform1f(pu.uHigh, F.high);
-      gl.uniform1f(pu.uScale, F.pxScale);
+      gl.uniform1f(pu.uScale, F.pxScale); gl.uniform1f(pu.uBeat, F.beat); gl.uniform1f(pu.uDustSize, F.dustSize || 1); gl.uniform1f(pu.uDustBeat, F.dustBeat || 0); gl.uniform1f(pu.uDustGlow, F.dustGlow || 0);
       gl.uniform3fv(pu.uC0, C[0]); gl.uniform3fv(pu.uC1, C[1]); gl.uniform3fv(pu.uC2, C[2]); gl.uniform3fv(pu.uC3, C[3]);
       for (const [k, n] of kinds) { gl.uniform1f(pu.uKind, k); gl.drawArrays(gl.POINTS, 0, Math.round(n * F.particleAmt)); }
       gl.disable(gl.BLEND);
@@ -548,7 +708,7 @@ class Engine {
     // 3. bloom
     if (F.glow > 0.01) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.b0.f); gl.viewport(0, 0, this.b0.w, this.b0.h);
-      gl.useProgram(this.down.p); gl.uniform2f(this.down.u.uTexel, 1 / W, 1 / H); gl.uniform1f(this.down.u.uThr, F.light ? 0.12 : 0.28);
+      gl.useProgram(this.down.p); gl.uniform2f(this.down.u.uTexel, 1 / W, 1 / H); gl.uniform1f(this.down.u.uThr, F.light ? 0.12 : (F.glowThr != null ? F.glowThr : 0.28));
       this.bindTex(0, dst.t, this.down.u.uTex); this.quad();
       gl.useProgram(this.blur.p); gl.uniform2f(this.blur.u.uRes, this.b0.w, this.b0.h);
       for (let i = 0; i < 2; i++) {
@@ -563,6 +723,8 @@ class Engine {
     gl.uniform1f(fu.uVig, F.vignette); gl.uniform1f(fu.uGrain, F.grain); gl.uniform1f(fu.uBeat, F.beat); gl.uniform1f(fu.uCA, F.ca);
     gl.uniform1f(fu.uTime, F.t); gl.uniform1f(fu.uBackA, F.backdrop); gl.uniform1f(fu.uHasBack, this.hasBack);
     gl.uniform3fv(fu.uBg, F.bg); gl.uniform3fv(fu.uBgL, F.bgLight);
+    gl.uniform1f(fu.uPunch, F.punch || 0); gl.uniform1f(fu.uFlash, F.flashAmt || 0); gl.uniform3fv(fu.uFlashC, F.flashCol || [1, 1, 1]); gl.uniform2f(fu.uZC, F.center[0] * H / W, F.center[1]);
+    gl.uniform1f(fu.uExposure, F.exposure || 1); gl.uniform1f(fu.uMaxB, F.maxBright || 1); gl.uniform1f(fu.uLife, F.life == null ? 1 : F.life); gl.uniform1f(fu.uMood, F.mood ? F.moodDepth : 0);
     this.bindTex(0, dst.t, fu.uAcc); this.bindTex(1, this.b0.t, fu.uBloom); this.bindTex(2, this.back, fu.uBack);
     this.quad();
   }
